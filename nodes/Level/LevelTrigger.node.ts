@@ -85,7 +85,7 @@ export class LevelTrigger implements INodeType {
                                 name: 'rawBody',
                                 type: 'boolean',
                                 default: false,
-                                description: 'Whether to emit the raw JSON payload instead of the parsed event object.',
+                                description: 'Whether to emit the raw JSON payload instead of the parsed event object',
                         },
                 ],
         };
