@@ -1,1 +1,67 @@
+import type {
+        IAuthenticateGeneric,
+        ICredentialTestRequest,
+        ICredentialType,
+        Icon,
+        INodeProperties,
+} from 'n8n-workflow';
 
+export class LevelApi implements ICredentialType {
+        name = 'levelApi';
+
+        displayName = 'Level API';
+
+        icon: Icon = {
+                light: 'file:levelLight.svg',
+                dark: 'file:levelDark.svg',
+        };
+
+        documentationUrl = 'https://levelapi.readme.io/reference/getting-started-with-your-api';
+
+        authenticate: IAuthenticateGeneric = {
+                type: 'generic',
+                properties: {
+                        headers: {
+                                Authorization: '={{ `Bearer ${$credentials.apiKey}` }}',
+                        },
+                },
+        };
+
+        test: ICredentialTestRequest = {
+                request: {
+                        method: 'GET',
+                        url: '={{ $credentials.baseUrl || "https://api.level.io/v1" }}/alerts',
+                },
+        };
+
+        properties: INodeProperties[] = [
+                {
+                        displayName: 'API Key',
+                        name: 'apiKey',
+                        type: 'string',
+                        typeOptions: {
+                                password: true,
+                        },
+                        default: '',
+                        required: true,
+                        description: 'API key generated from the Level dashboard',
+                },
+                {
+                        displayName: 'Webhook Secret',
+                        name: 'webhookSecret',
+                        type: 'string',
+                        typeOptions: {
+                                password: true,
+                        },
+                        default: '',
+                        description: 'Shared secret to verify Level webhook signatures',
+                },
+                {
+                        displayName: 'Base URL',
+                        name: 'baseUrl',
+                        type: 'string',
+                        default: 'https://api.level.io/v1',
+                        description: 'Override the default Level API base URL if necessary',
+                },
+        ];
+}

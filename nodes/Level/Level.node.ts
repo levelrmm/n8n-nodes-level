@@ -7,7 +7,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
-import { levelApiRequest, returnAllItems } from './GenericFunctions';
+import { levelApiRequest, levelApiRequestAllItems } from './GenericFunctions';
 import { alertsFields, alertsOperations } from './descriptions/Alerts.description';
 import { automationsFields, automationsOperations } from './descriptions/Automations.description';
 import { devicesFields, devicesOperations } from './descriptions/Devices.description';
@@ -119,21 +119,28 @@ export class Level implements INodeType {
 
                                 if (resource === 'alerts') {
                                         if (operation === 'list') {
-                                                response = await returnAllItems.call(this, 'GET', '/alerts');
-                                                if (
-                                                        typeof response === 'object' &&
-                                                        response !== null &&
-                                                        Array.isArray((response as IDataObject).alerts)
-                                                ) {
-                                                        response = (response as IDataObject).alerts;
+                                                const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+                                                const qs: IDataObject = {};
+                                                if (!returnAll) {
+                                                        const limit = this.getNodeParameter('limit', itemIndex) as number;
+                                                        qs.per_page = limit;
+                                                }
+
+                                                if (returnAll) {
+                                                        response = await levelApiRequestAllItems.call(this, 'GET', '/alerts', qs);
+                                                } else {
+                                                        response = await levelApiRequest.call(this, 'GET', '/alerts', qs);
+                                                        if (
+                                                                typeof response === 'object' &&
+                                                                response !== null &&
+                                                                Array.isArray((response as IDataObject).alerts)
+                                                        ) {
+                                                                response = (response as IDataObject).alerts;
+                                                        }
                                                 }
                                         } else if (operation === 'get') {
                                                 const alertId = this.getNodeParameter('id', itemIndex) as string;
-                                                response = await levelApiRequest.call(
-                                                        this,
-                                                        'GET',
-                                                        `/alerts/${alertId}`,
-                                                );
+                                                response = await levelApiRequest.call(this, 'GET', `/alerts/${alertId}`);
                                                 if (
                                                         typeof response === 'object' &&
                                                         response !== null &&
@@ -150,21 +157,28 @@ export class Level implements INodeType {
                                         }
                                 } else if (resource === 'devices') {
                                         if (operation === 'list') {
-                                                response = await returnAllItems.call(this, 'GET', '/devices');
-                                                if (
-                                                        typeof response === 'object' &&
-                                                        response !== null &&
-                                                        Array.isArray((response as IDataObject).devices)
-                                                ) {
-                                                        response = (response as IDataObject).devices;
+                                                const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+                                                const qs: IDataObject = {};
+                                                if (!returnAll) {
+                                                        const limit = this.getNodeParameter('limit', itemIndex) as number;
+                                                        qs.per_page = limit;
+                                                }
+
+                                                if (returnAll) {
+                                                        response = await levelApiRequestAllItems.call(this, 'GET', '/devices', qs);
+                                                } else {
+                                                        response = await levelApiRequest.call(this, 'GET', '/devices', qs);
+                                                        if (
+                                                                typeof response === 'object' &&
+                                                                response !== null &&
+                                                                Array.isArray((response as IDataObject).devices)
+                                                        ) {
+                                                                response = (response as IDataObject).devices;
+                                                        }
                                                 }
                                         } else if (operation === 'get') {
                                                 const deviceId = this.getNodeParameter('id', itemIndex) as string;
-                                                response = await levelApiRequest.call(
-                                                        this,
-                                                        'GET',
-                                                        `/devices/${deviceId}`,
-                                                );
+                                                response = await levelApiRequest.call(this, 'GET', `/devices/${deviceId}`);
                                                 if (
                                                         typeof response === 'object' &&
                                                         response !== null &&
@@ -181,21 +195,28 @@ export class Level implements INodeType {
                                         }
                                 } else if (resource === 'groups') {
                                         if (operation === 'list') {
-                                                response = await returnAllItems.call(this, 'GET', '/groups');
-                                                if (
-                                                        typeof response === 'object' &&
-                                                        response !== null &&
-                                                        Array.isArray((response as IDataObject).groups)
-                                                ) {
-                                                        response = (response as IDataObject).groups;
+                                                const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+                                                const qs: IDataObject = {};
+                                                if (!returnAll) {
+                                                        const limit = this.getNodeParameter('limit', itemIndex) as number;
+                                                        qs.per_page = limit;
+                                                }
+
+                                                if (returnAll) {
+                                                        response = await levelApiRequestAllItems.call(this, 'GET', '/groups', qs);
+                                                } else {
+                                                        response = await levelApiRequest.call(this, 'GET', '/groups', qs);
+                                                        if (
+                                                                typeof response === 'object' &&
+                                                                response !== null &&
+                                                                Array.isArray((response as IDataObject).groups)
+                                                        ) {
+                                                                response = (response as IDataObject).groups;
+                                                        }
                                                 }
                                         } else if (operation === 'get') {
                                                 const groupId = this.getNodeParameter('id', itemIndex) as string;
-                                                response = await levelApiRequest.call(
-                                                        this,
-                                                        'GET',
-                                                        `/groups/${groupId}`,
-                                                );
+                                                response = await levelApiRequest.call(this, 'GET', `/groups/${groupId}`);
                                                 if (
                                                         typeof response === 'object' &&
                                                         response !== null &&
@@ -237,10 +258,17 @@ export class Level implements INodeType {
                                                                                         typeof parsedPayload !== 'object' ||
                                                                                         parsedPayload === null
                                                                                 ) {
-                                                                                        throw new Error('JSON payload must be an object.');
+                                                                                        throw new NodeOperationError(
+                                                                                                this.getNode(),
+                                                                                                'JSON payload must be an object',
+                                                                                                { itemIndex },
+                                                                                        );
                                                                                 }
                                                                                 body = parsedPayload as IDataObject;
                                                                         } catch (error) {
+                                                                                if (error instanceof NodeOperationError) {
+                                                                                        throw error;
+                                                                                }
                                                                                 throw new NodeOperationError(
                                                                                         this.getNode(),
                                                                                         error as Error,
@@ -258,7 +286,7 @@ export class Level implements INodeType {
                                                                 {},
                                                         ) as IDataObject;
 
-                                                        const properties = (payloadCollection.properties as IDataObject[]) ?? [];
+                                                        const properties = (payloadCollection.property as IDataObject[]) ?? [];
 
                                                         for (const property of properties) {
                                                                 const key = (property.key as string | undefined) ?? '';
