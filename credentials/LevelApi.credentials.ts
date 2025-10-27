@@ -1,15 +1,24 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type {
+        IAuthenticateGeneric,
+        ICredentialTestRequest,
+        ICredentialType,
+        Icon,
+        INodeProperties,
+} from 'n8n-workflow';
 
 export class LevelApi implements ICredentialType {
         name = 'levelApi';
 
         displayName = 'Level API';
 
-        icon = 'file:level.svg';
+        icon: Icon = {
+                light: 'file:levelLight.svg',
+                dark: 'file:levelDark.svg',
+        };
 
         documentationUrl = 'https://levelapi.readme.io/reference/getting-started-with-your-api';
 
-        authenticate = {
+        authenticate: IAuthenticateGeneric = {
                 type: 'generic',
                 properties: {
                         headers: {
@@ -18,11 +27,10 @@ export class LevelApi implements ICredentialType {
                 },
         };
 
-        test = {
+        test: ICredentialTestRequest = {
                 request: {
                         method: 'GET',
-                        baseURL: '={{ $credentials.baseUrl }}',
-                        url: '/alerts',
+                        url: '={{ $credentials.baseUrl || "https://api.level.io/v1" }}/alerts',
                 },
         };
 
