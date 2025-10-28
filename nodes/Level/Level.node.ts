@@ -172,7 +172,6 @@ export class Level implements INodeType {
 								if (val === undefined || val === null) continue;
 								if (typeof val === 'string' && val.trim() === '') continue;
 								// allow dateTime UI types to pass Dates
-								// @ts-expect-error runtime guard
 								qs[key] = val instanceof Date ? val.toISOString() : val;
 							}
 						}
@@ -200,7 +199,6 @@ export class Level implements INodeType {
 							for (const [key, val] of Object.entries(filters)) {
 								if (val === undefined || val === null) continue;
 								if (typeof val === 'string' && val.trim() === '') continue;
-								// @ts-expect-error runtime guard
 								qs[key] = val instanceof Date ? val.toISOString() : val;
 							}
 						}
