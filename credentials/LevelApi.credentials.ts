@@ -21,16 +21,15 @@ export class LevelApi implements ICredentialType {
         authenticate: IAuthenticateGeneric = {
                 type: 'generic',
                 properties: {
-                        headers: {
-                                Authorization: '={{ `Bearer ${$credentials.apiKey}` }}',
-                        },
+                        headers: { Authorization: '={{$credentials.apiKey}}' },
                 },
         };
 
         test: ICredentialTestRequest = {
                 request: {
+                        baseURL: '={{$credentials.baseUrl}}',
+                        url: '/groups',
                         method: 'GET',
-                        url: '={{ $credentials.baseUrl || "https://api.level.io/v1" }}/alerts',
                 },
         };
 
@@ -60,7 +59,7 @@ export class LevelApi implements ICredentialType {
                         displayName: 'Base URL',
                         name: 'baseUrl',
                         type: 'string',
-                        default: 'https://api.level.io/v1',
+                        default: 'https://api.level.io/v2',
                         description: 'Override the default Level API base URL if necessary',
                 },
         ];
