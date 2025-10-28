@@ -126,6 +126,26 @@ export class Level implements INodeType {
 							const limit = this.getNodeParameter('limit', itemIndex) as number;
 							qs.per_page = limit;
 						}
+						// Pagination & cursor params
+						const pageNum = this.getNodeParameter('page', itemIndex, 0) as number;
+						if (pageNum) { qs.page = pageNum; }
+						const startingAfter = this.getNodeParameter('starting_after', itemIndex, '') as string;
+						if (startingAfter) { qs.starting_after = startingAfter; }
+						const endingBefore = this.getNodeParameter('ending_before', itemIndex, '') as string;
+						if (endingBefore) { qs.ending_before = endingBefore; }
+
+						// Additional arbitrary query string parameters
+						const additionalQuery = this.getNodeParameter('additionalQuery', itemIndex, {}) as IDataObject;
+						if (additionalQuery && (additionalQuery as IDataObject).parameters) {
+							const params = (additionalQuery as IDataObject).parameters as IDataObject[];
+							for (const p of params) {
+								const key = (p.key as string) || '';
+								if (key !== undefined && key !== '') {
+									qs[key] = p.value as string;
+								}
+							}
+						}
+
 
 						if (returnAll) {
 							response = await levelApiRequestAllItems.call(
@@ -147,8 +167,20 @@ export class Level implements INodeType {
 							}
 						}
 					} else if (operation === 'get') {
+						const qs: IDataObject = {};
+						const additionalQuery = this.getNodeParameter('additionalQuery', itemIndex, {}) as IDataObject;
+						if (additionalQuery && (additionalQuery as IDataObject).parameters) {
+							const params = (additionalQuery as IDataObject).parameters as IDataObject[];
+							for (const p of params) {
+								const key = (p.key as string) || '';
+								if (key !== undefined && key !== '') {
+									qs[key] = p.value as string;
+								}
+							}
+						}
+
 						const alertId = this.getNodeParameter('id', itemIndex) as string;
-						response = await levelApiRequest.call(this, 'GET', `/alerts/${alertId}`);
+						response = await levelApiRequest.call(this, 'GET', `/alerts/${alertId}`, {}, qs);
 						if (
 							typeof response === 'object' &&
 							response !== null &&
@@ -171,6 +203,26 @@ export class Level implements INodeType {
 							const limit = this.getNodeParameter('limit', itemIndex) as number;
 							qs.per_page = limit;
 						}
+						// Pagination & cursor params
+						const pageNum = this.getNodeParameter('page', itemIndex, 0) as number;
+						if (pageNum) { qs.page = pageNum; }
+						const startingAfter = this.getNodeParameter('starting_after', itemIndex, '') as string;
+						if (startingAfter) { qs.starting_after = startingAfter; }
+						const endingBefore = this.getNodeParameter('ending_before', itemIndex, '') as string;
+						if (endingBefore) { qs.ending_before = endingBefore; }
+
+						// Additional arbitrary query string parameters
+						const additionalQuery = this.getNodeParameter('additionalQuery', itemIndex, {}) as IDataObject;
+						if (additionalQuery && (additionalQuery as IDataObject).parameters) {
+							const params = (additionalQuery as IDataObject).parameters as IDataObject[];
+							for (const p of params) {
+								const key = (p.key as string) || '';
+								if (key !== undefined && key !== '') {
+									qs[key] = p.value as string;
+								}
+							}
+						}
+
 
 						if (returnAll) {
 							response = await levelApiRequestAllItems.call(
@@ -192,8 +244,20 @@ export class Level implements INodeType {
 							}
 						}
 					} else if (operation === 'get') {
+						const qs: IDataObject = {};
+						const additionalQuery = this.getNodeParameter('additionalQuery', itemIndex, {}) as IDataObject;
+						if (additionalQuery && (additionalQuery as IDataObject).parameters) {
+							const params = (additionalQuery as IDataObject).parameters as IDataObject[];
+							for (const p of params) {
+								const key = (p.key as string) || '';
+								if (key !== undefined && key !== '') {
+									qs[key] = p.value as string;
+								}
+							}
+						}
+
 						const deviceId = this.getNodeParameter('id', itemIndex) as string;
-						response = await levelApiRequest.call(this, 'GET', `/devices/${deviceId}`);
+						response = await levelApiRequest.call(this, 'GET', `/devices/${deviceId}`, {}, qs);
 						if (
 							typeof response === 'object' &&
 							response !== null &&
@@ -218,6 +282,30 @@ export class Level implements INodeType {
 							const limit = this.getNodeParameter('limit', itemIndex) as number;
 							qs.per_page = limit;
 						}
+						// Pagination & cursor params
+						const pageNum = this.getNodeParameter('page', itemIndex, 0) as number;
+						if (pageNum) { qs.page = pageNum; }
+						const startingAfter = this.getNodeParameter('starting_after', itemIndex, '') as string;
+						if (startingAfter) { qs.starting_after = startingAfter; }
+						const endingBefore = this.getNodeParameter('ending_before', itemIndex, '') as string;
+						if (endingBefore) { qs.ending_before = endingBefore; }
+
+						// Group hierarchy filter
+						const parentId = this.getNodeParameter('parent_id', itemIndex, '') as string;
+						if (parentId) { qs.parent_id = parentId; }
+
+						// Additional arbitrary query string parameters
+						const additionalQuery = this.getNodeParameter('additionalQuery', itemIndex, {}) as IDataObject;
+						if (additionalQuery && (additionalQuery as IDataObject).parameters) {
+							const params = (additionalQuery as IDataObject).parameters as IDataObject[];
+							for (const p of params) {
+								const key = (p.key as string) || '';
+								if (key !== undefined && key !== '') {
+									qs[key] = p.value as string;
+								}
+							}
+						}
+
 
 						if (returnAll) {
 							response = await levelApiRequestAllItems.call(
@@ -239,8 +327,20 @@ export class Level implements INodeType {
 							}
 						}
 					} else if (operation === 'get') {
+						const qs: IDataObject = {};
+						const additionalQuery = this.getNodeParameter('additionalQuery', itemIndex, {}) as IDataObject;
+						if (additionalQuery && (additionalQuery as IDataObject).parameters) {
+							const params = (additionalQuery as IDataObject).parameters as IDataObject[];
+							for (const p of params) {
+								const key = (p.key as string) || '';
+								if (key !== undefined && key !== '') {
+									qs[key] = p.value as string;
+								}
+							}
+						}
+
 						const groupId = this.getNodeParameter('id', itemIndex) as string;
-						response = await levelApiRequest.call(this, 'GET', `/groups/${groupId}`);
+						response = await levelApiRequest.call(this, 'GET', `/groups/${groupId}`, {}, qs);
 						if (
 							typeof response === 'object' &&
 							response !== null &&
