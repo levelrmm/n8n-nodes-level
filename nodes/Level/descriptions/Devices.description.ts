@@ -6,7 +6,11 @@ export const devicesOperations: INodeProperties[] = [
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
-		displayOptions: { show: { resource: ['device'] } },
+		displayOptions: {
+			show: {
+				resource: ['device'],
+			},
+		},
 		options: [
 			{ name: 'List', value: 'list', action: 'List devices' },
 			{ name: 'Get', value: 'get', action: 'Get a device' },
@@ -24,7 +28,12 @@ export const devicesFields: INodeProperties[] = [
 		required: true,
 		default: '',
 		description: 'The ID of the device to retrieve.',
-		displayOptions: { show: { resource: ['device'], operation: ['get'] } },
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['get'],
+			},
+		},
 	},
 	{
 		displayName: 'Optional Fields',
@@ -33,13 +42,51 @@ export const devicesFields: INodeProperties[] = [
 		placeholder: 'Add Field',
 		default: {},
 		description: 'Optional query parameters.',
-		displayOptions: { show: { resource: ['device'], operation: ['get'] } },
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['get'],
+			},
+		},
 		options: [
-			{ displayName: 'Include Operating System', name: 'includeOperatingSystem', type: 'boolean', default: false, description: 'Include detailed operating system information in the response (<code>include_operating_system</code>).' },
-			{ displayName: 'Include CPUs', name: 'includeCpus', type: 'boolean', default: false, description: 'Include detailed CPU information in the response (<code>include_cpus</code>).' },
-			{ displayName: 'Include Memory', name: 'includeMemory', type: 'boolean', default: false, description: 'Include detailed memory information in the response (<code>include_memory</code>).' },
-			{ displayName: 'Include Disks', name: 'includeDisks', type: 'boolean', default: false, description: 'Include detailed disk and disk partition information in the response (<code>include_disks</code>).' },
-			{ displayName: 'Include Network Interfaces', name: 'includeNetworkInterfaces', type: 'boolean', default: false, description: 'Include detailed network interface information in the response (<code>include_network_interfaces</code>).' },
+			{
+				displayName: 'Include Operating System',
+				name: 'includeOperatingSystem',
+				type: 'boolean',
+				default: false,
+				description:
+					'Include detailed operating system information in the response (<code>include_operating_system</code>).',
+			},
+			{
+				displayName: 'Include CPUs',
+				name: 'includeCpus',
+				type: 'boolean',
+				default: false,
+				description: 'Include detailed CPU information in the response (<code>include_cpus</code>).',
+			},
+			{
+				displayName: 'Include Memory',
+				name: 'includeMemory',
+				type: 'boolean',
+				default: false,
+				description: 'Include detailed memory information in the response (<code>include_memory</code>).',
+			},
+			{
+				displayName: 'Include Disks',
+				name: 'includeDisks',
+				type: 'boolean',
+				default: false,
+				description:
+					'Include detailed disk and disk partition information in the response (<code>include_disks</code>).',
+			},
+			{
+				displayName: 'Include Network Interfaces',
+				name: 'includeNetworkInterfaces',
+				type: 'boolean',
+				default: false,
+				description:
+					'Include detailed network interface information in the response (<code>include_network_interfaces</code>).',
+			},
 			{
 				displayName: 'Additional Query Parameters',
 				name: 'extraQuery',
@@ -69,7 +116,12 @@ export const devicesFields: INodeProperties[] = [
 		type: 'boolean',
 		default: false,
 		description: 'Fetch all pages automatically using cursor pagination (<code>starting_after</code>).',
-		displayOptions: { show: { resource: ['device'], operation: ['list'] } },
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['list'],
+			},
+		},
 	},
 	{
 		displayName: 'Limit',
@@ -78,97 +130,95 @@ export const devicesFields: INodeProperties[] = [
 		default: 20,
 		typeOptions: { minValue: 1, maxValue: 100 },
 		description: 'A limit on the number of objects to be returned. Range 1–100. Default is 20.',
-		displayOptions: { show: { resource: ['device'], operation: ['list'], returnAll: [false] } },
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['list'],
+				returnAll: [false],
+			},
+		},
 	},
-	 {
-	displayName: 'Additional Fields',
-	name: 'filters',
-	type: 'collection',
-	placeholder: 'Add Field',
-	default: {},
-	displayOptions: { show: { resource: ['devices'], operation: ['list'] } },
-	options: [
-	  {
-		displayName: 'Search',
-		name: 'search',
-		type: 'string',
-		default: '',
-		description: 'Free-text search (name, serial, etc.)',
-	  },
-	  {
-		displayName: 'Group ID',
-		name: 'group_id',
-		type: 'string',
-		default: '',
-		description: 'Filter by Level Group ID',
-	  },
-	  {
-		displayName: 'Status',
-		name: 'status',
-		type: 'options',
-		options: [
-		  { name: 'Any', value: '' },
-		  { name: 'Online', value: 'online' },
-		  { name: 'Offline', value: 'offline' },
-		  { name: 'Inactive', value: 'inactive' },
-		],
-		default: '',
-		description: 'Filter by device status',
-	  },
-	  {
-		displayName: 'OS',
-		name: 'os',
-		type: 'string',
-		default: '',
-		description: 'Operating system (e.g. windows, macos)',
-	  },
-	  {
-		displayName: 'Platform',
-		name: 'platform',
-		type: 'string',
-		default: '',
-		description: 'Hardware/agent platform',
-	  },
-	  {
-		displayName: 'Page',
-		name: 'page',
-		type: 'number',
-		typeOptions: { minValue: 1 },
-		default: 1,
-		description: 'Page number (ignored if Return All is true)',
-	  },
-	  {
-		displayName: 'Per Page',
-		name: 'per_page',
-		type: 'number',
-		typeOptions: { minValue: 1, maxValue: 100 },
-		default: 50,
-		description: 'Page size (ignored if Return All is true)',
-	  },
-	  {
-		displayName: 'Last Seen After',
-		name: 'last_seen_after',
-		type: 'dateTime',
-		default: '',
-		description: 'Only devices seen after this timestamp',
-	  },
 	{
 		displayName: 'Optional Fields',
 		name: 'deviceListOptions',
 		type: 'collection',
 		placeholder: 'Add Field',
 		default: {},
-		displayOptions: { show: { resource: ['device'], operation: ['list'] } },
+		displayOptions: {
+			show: {
+				resource: ['device'],
+				operation: ['list'],
+			},
+		},
 		options: [
-			{ displayName: 'Group ID', name: 'groupId', type: 'string', default: '', description: "Filter to only include devices with the given parent group ID (<code>group_id</code>). If 'null' is provided, only devices without a parent group are returned." },
-			{ displayName: 'Ancestor Group ID', name: 'ancestorGroupId', type: 'string', default: '', description: 'Filter to only include devices with the given group ID as an ancestor (<code>ancestor_group_id</code>).' },
-			{ displayName: 'Include Operating System', name: 'includeOperatingSystem', type: 'boolean', default: false, description: 'Include detailed operating system information in the response (<code>include_operating_system</code>).' },
-			{ displayName: 'Include CPUs', name: 'includeCpus', type: 'boolean', default: false, description: 'Include detailed CPU information in the response (<code>include_cpus</code>).' },
-			{ displayName: 'Include Memory', name: 'includeMemory', type: 'boolean', default: false, description: 'Include detailed memory information in the response (<code>include_memory</code>).' },
-			{ displayName: 'Include Disks', name: 'includeDisks', type: 'boolean', default: false, description: 'Include detailed disk and disk partition information in the response (<code>include_disks</code>).' },
-			{ displayName: 'Include Network Interfaces', name: 'includeNetworkInterfaces', type: 'boolean', default: false, description: 'Include detailed network interface information in the response (<code>include_network_interfaces</code>).' },
-			{ displayName: 'Starting After', name: 'startingAfter', type: 'string', default: '', description: "A cursor for use in pagination (<code>starting_after</code>)." },
-			{ displayName: 'Ending Before', name: 'endingBefore', type: 'string', default: '', description: "A cursor for use in pagination (<code>ending_before</code>)." },
+			{
+				displayName: 'Group ID',
+				name: 'groupId',
+				type: 'string',
+				default: '',
+				description:
+					"Filter to only include devices with the given parent group ID (<code>group_id</code>). If 'null' is provided, only devices without a parent group are returned.",
+			},
+			{
+				displayName: 'Ancestor Group ID',
+				name: 'ancestorGroupId',
+				type: 'string',
+				default: '',
+				description:
+					'Filter to only include devices with the given group ID as an ancestor (<code>ancestor_group_id</code>).',
+			},
+			{
+				displayName: 'Include Operating System',
+				name: 'includeOperatingSystem',
+				type: 'boolean',
+				default: false,
+				description:
+					'Include detailed operating system information in the response (<code>include_operating_system</code>).',
+			},
+			{
+				displayName: 'Include CPUs',
+				name: 'includeCpus',
+				type: 'boolean',
+				default: false,
+				description: 'Include detailed CPU information in the response (<code>include_cpus</code>).',
+			},
+			{
+				displayName: 'Include Memory',
+				name: 'includeMemory',
+				type: 'boolean',
+				default: false,
+				description: 'Include detailed memory information in the response (<code>include_memory</code>).',
+			},
+			{
+				displayName: 'Include Disks',
+				name: 'includeDisks',
+				type: 'boolean',
+				default: false,
+				description:
+					'Include detailed disk and disk partition information in the response (<code>include_disks</code>).',
+			},
+			{
+				displayName: 'Include Network Interfaces',
+				name: 'includeNetworkInterfaces',
+				type: 'boolean',
+				default: false,
+				description:
+					'Include detailed network interface information in the response (<code>include_network_interfaces</code>).',
+			},
+			{
+				displayName: 'Starting After',
+				name: 'startingAfter',
+				type: 'string',
+				default: '',
+				description: 'A cursor for use in pagination (<code>starting_after</code>).',
+			},
+			{
+				displayName: 'Ending Before',
+				name: 'endingBefore',
+				type: 'string',
+				default: '',
+				description: 'A cursor for use in pagination (<code>ending_before</code>).',
+			},
 			{
 				displayName: 'Additional Query Parameters',
 				name: 'extraQuery',
