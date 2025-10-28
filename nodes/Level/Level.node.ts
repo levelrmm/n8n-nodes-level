@@ -1,6 +1,14 @@
-import type { IDataObject, IExecuteFunctions, INodeExecutionData, INodeType, INodeTypeDescription } from 'n8n-workflow';
+import type {
+	IDataObject,
+	IExecuteFunctions,
+	INodeExecutionData,
+	INodeType,
+	INodeTypeDescription,
+} from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+
 import { levelApiRequest } from './GenericFunctions';
+
 import { alertsFields, alertsOperations } from './descriptions/Alerts.description';
 import { devicesFields, devicesOperations } from './descriptions/Devices.description';
 import { groupsFields, groupsOperations } from './descriptions/Groups.description';
@@ -19,31 +27,46 @@ export class Level implements INodeType {
 		usableAsTool: true,
 		credentials: [{ name: 'levelApi', required: true }],
 		properties: [
-			{ displayName: 'Resource', name: 'resource', type: 'options', noDataExpression: true, options: [
-				{ name: 'Alert', value: 'alerts' },
-				{ name: 'Device', value: 'devices' },
-				{ name: 'Group', value: 'groups' },
-			], default: 'devices' },
+			{
+				displayName: 'Resource',
+				name: 'resource',
+				type: 'options',
+				noDataExpression: true,
+				options: [
+					{ name: 'Alert', value: 'alert' },
+					{ name: 'Device', value: 'device' },
+					{ name: 'Group', value: 'group' },
+				],
+				default: 'device',
+			},
 			...alertsOperations,
 			...alertsFields,
 			...devicesOperations,
 			...devicesFields,
 			...groupsOperations,
 			...groupsFields,
-			{ displayName: 'Response Property Name', name: 'responsePropertyName', type: 'string', default: '', placeholder: 'Leave empty to return the whole response', description: 'If the API response wraps the array in a property (e.g. devices), set that property name. If left empty, the node attempts to auto-detect and returns the raw response if needed.' },
+			{
+				displayName: 'Response Property Name',
+				name: 'responsePropertyName',
+				type: 'string',
+				default: '',
+				placeholder: 'Leave empty to return the whole response',
+				description:
+					'If the API response wraps the array in a property (e.g. <code>devices</code>), set that property name. If left empty, the node attempts to auto-detect and returns the raw response if needed.',
+			},
 		],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-		const out: IDataObject[] = [];
+		const returnData: IDataObject[] = [];
 
-		const asArray = (res: unknown, propName: string): IDataObject[] => {
+		const asArray = (res: unknown, propName?: string): IDataObject[] => {
 			if (Array.isArray(res)) return res as IDataObject[];
 			if (res && typeof res === 'object') {
 				const obj = res as IDataObject;
 				if (propName && Array.isArray((obj as any)[propName])) return (obj as any)[propName] as IDataObject[];
-				for (const k of ['devices','groups','alerts','data','items']) {
+				for (const k of ['devices', 'groups', 'alerts', 'data', 'items']) {
 					if (Array.isArray((obj as any)[k])) return (obj as any)[k] as IDataObject[];
 				}
 				return [obj];
@@ -51,60 +74,77 @@ export class Level implements INodeType {
 			return [];
 		};
 
-		const fetchAllCursor = async (that: IExecuteFunctions, endpoint: string, baseQuery: IDataObject, perPage: number) => {
-			const acc: IDataObject[] = [];
+		const appendExtraQuery = (qs: IDataObject, collection: IDataObject | undefined) => {
+			const pairs = (collection?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
+			if (pairs && Array.isArray(pairs)) {
+				for (const p of pairs) {
+					const key = (p?.key as string) ?? '';
+					if (!key) continue;
+					qs[key] = p?.value as string;
+				}
+			}
+		};
+
+		const fetchAllCursor = async (endpoint: string, baseQuery: IDataObject, limitPerPage = 100) => {
+			const aggregated: IDataObject[] = [];
 			let cursor = baseQuery['starting_after'] as string | undefined;
-			const q: IDataObject = { ...baseQuery };
-			delete q['starting_after'];
+			const base: IDataObject = { ...baseQuery };
+			delete base['starting_after'];
+
 			while (true) {
-				const pageQs: IDataObject = { ...q, limit: perPage };
-				if (cursor) (pageQs as any)['starting_after'] = cursor;
-				const page = await levelApiRequest.call(that, 'GET', endpoint, {}, pageQs);
-				const arr = asArray(page, '');
-				if (!arr.length) break;
-				acc.push(...arr);
-				if (arr.length < perPage) break;
-				const last = arr[arr.length - 1];
+				const pageQs: IDataObject = { ...base, limit: limitPerPage };
+				if (cursor) pageQs['starting_after'] = cursor;
+				const pageResp = await levelApiRequest.call(this, 'GET', endpoint, {}, pageQs);
+				const itemsArr = asArray(pageResp);
+				if (!itemsArr.length) break;
+				aggregated.push(...itemsArr);
+				if (itemsArr.length < limitPerPage) break;
+				const last = itemsArr[itemsArr.length - 1];
 				const lastId = (last && typeof last === 'object') ? (last as any).id as string : undefined;
 				if (!lastId) break;
 				cursor = lastId;
 			}
-			return acc;
+			return aggregated;
 		};
 
-		for (let i = 0; i < items.length; i++) {
-			const resource = this.getNodeParameter('resource', i) as string;
-			const operation = this.getNodeParameter('operation', i) as string;
-			const responseProp = this.getNodeParameter('responsePropertyName', i, '') as string;
+		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
+			const resource = this.getNodeParameter('resource', itemIndex) as string;
+			const operation = this.getNodeParameter('operation', itemIndex) as string;
+			const responseProp = this.getNodeParameter('responsePropertyName', itemIndex, '') as string;
 
 			try {
 				let qs: IDataObject = {};
-				let resp: unknown;
+				let response: unknown;
 
-				if (resource === 'alerts') {
+				// -------- Alerts --------
+				if (resource === 'alert') {
 					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-						const limit = this.getNodeParameter('limit', i, 20) as number;
-						const options = this.getNodeParameter('alertsListOptions', i, {}) as IDataObject;
+						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
+						const options = this.getNodeParameter('alertListOptions', itemIndex, {}) as IDataObject;
+
 						if (!returnAll) qs.limit = limit;
 						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
 						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
-						const kv = (((options as any).extraQuery || {}) as any).parameter as IDataObject[] | undefined;
-						if (Array.isArray(kv)) for (const p of kv) if (p.key) qs[p.key as string] = p.value as string;
-						if (returnAll) resp = await fetchAllCursor(this, '/alerts', qs, 100);
-						else resp = await levelApiRequest.call(this, 'GET', '/alerts', {}, qs);
+						appendExtraQuery(qs, options);
+
+						if (returnAll) response = await fetchAllCursor('/alerts', qs, 100);
+						else response = await levelApiRequest.call(this, 'GET', '/alerts', {}, qs);
 					} else if (operation === 'get') {
-						const id = this.getNodeParameter('id', i) as string;
-						resp = await levelApiRequest.call(this, 'GET', `/alerts/${id}`, {}, {});
+						const id = this.getNodeParameter('id', itemIndex) as string;
+						response = await levelApiRequest.call(this, 'GET', `/alerts/${id}`, {}, {});
 					} else {
-						throw new Error('Unsupported alerts operation: ' + operation);
+						throw new Error(`Unsupported alerts operation: ${operation}`);
 					}
 				}
-				else if (resource === 'devices') {
+
+				// -------- Devices --------
+				else if (resource === 'device') {
 					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-						const limit = this.getNodeParameter('limit', i, 20) as number;
-						const options = this.getNodeParameter('devicesListOptions', i, {}) as IDataObject;
+						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
+						const options = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
+
 						if ((options as any).groupId) qs['group_id'] = (options as any).groupId as string;
 						if ((options as any).ancestorGroupId) qs['ancestor_group_id'] = (options as any).ancestorGroupId as string;
 						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
@@ -114,62 +154,72 @@ export class Level implements INodeType {
 						if ((options as any).includeNetworkInterfaces) qs['include_network_interfaces'] = true;
 						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
 						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
-						const kv = (((options as any).extraQuery || {}) as any).parameter as IDataObject[] | undefined;
-						if (Array.isArray(kv)) for (const p of kv) if (p.key) qs[p.key as string] = p.value as string;
+						appendExtraQuery(qs, options);
+
 						if (!returnAll) {
 							qs.limit = limit;
-							resp = await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
+							response = await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
 						} else {
-							resp = await fetchAllCursor(this, '/devices', qs, 100);
+							response = await fetchAllCursor('/devices', qs, 100);
 						}
 					} else if (operation === 'get') {
-						const id = this.getNodeParameter('id', i) as string;
-						const options = this.getNodeParameter('devicesGetOptions', i, {}) as IDataObject;
+						const id = this.getNodeParameter('id', itemIndex) as string;
+						const options = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
+
 						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
 						if ((options as any).includeCpus) qs['include_cpus'] = true;
 						if ((options as any).includeMemory) qs['include_memory'] = true;
 						if ((options as any).includeDisks) qs['include_disks'] = true;
 						if ((options as any).includeNetworkInterfaces) qs['include_network_interfaces'] = true;
-						const kv = (((options as any).extraQuery || {}) as any).parameter as IDataObject[] | undefined;
-						if (Array.isArray(kv)) for (const p of kv) if (p.key) qs[p.key as string] = p.value as string;
-						resp = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
+						appendExtraQuery(qs, options);
+
+						response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
 					} else {
-						throw new Error('Unsupported devices operation: ' + operation);
+						throw new Error(`Unsupported devices operation: ${operation}`);
 					}
 				}
-				else if (resource === 'groups') {
+
+				// -------- Groups --------
+				else if (resource === 'group') {
 					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-						const limit = this.getNodeParameter('limit', i, 20) as number;
-						const options = this.getNodeParameter('groupsListOptions', i, {}) as IDataObject;
+						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
+						const options = this.getNodeParameter('groupListOptions', itemIndex, {}) as IDataObject;
+
 						if ((options as any).parentId) qs['parent_id'] = (options as any).parentId as string;
 						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
 						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
-						const kv = (((options as any).extraQuery || {}) as any).parameter as IDataObject[] | undefined;
-						if (Array.isArray(kv)) for (const p of kv) if (p.key) qs[p.key as string] = p.value as string;
+						appendExtraQuery(qs, options);
+
 						if (!returnAll) {
 							qs.limit = limit;
-							resp = await levelApiRequest.call(this, 'GET', '/groups', {}, qs);
+							response = await levelApiRequest.call(this, 'GET', '/groups', {}, qs);
 						} else {
-							resp = await fetchAllCursor(this, '/groups', qs, 100);
+							response = await fetchAllCursor('/groups', qs, 100);
 						}
 					} else if (operation === 'get') {
-						const id = this.getNodeParameter('id', i) as string;
-						resp = await levelApiRequest.call(this, 'GET', `/groups/${id}`, {}, {});
+						const id = this.getNodeParameter('id', itemIndex) as string;
+						response = await levelApiRequest.call(this, 'GET', `/groups/${id}`, {}, {});
 					} else {
-						throw new Error('Unsupported groups operation: ' + operation);
+						throw new Error(`Unsupported groups operation: ${operation}`);
 					}
 				}
+
 				else {
-					throw new Error('Unsupported resource: ' + resource);
+					throw new Error(`Unsupported resource: ${resource}`);
 				}
-				out.push(...asArray(resp, responseProp));
-			} catch (err) {
-				if ((err as any)?.context) (err as any).context.itemIndex = i;
-				throw new NodeOperationError(this.getNode(), err as Error, { itemIndex: i });
+
+				const arr = asArray(response, responseProp);
+				returnData.push(...arr);
+			} catch (error) {
+				if ((error as { context?: Record<string, unknown> }).context) {
+					(error as { context: Record<string, unknown> }).context.itemIndex = itemIndex;
+					throw error;
+				}
+				throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });
 			}
 		}
 
-		return [this.helpers.returnJsonArray(out)];
+		return [this.helpers.returnJsonArray(returnData)];
 	}
 }
