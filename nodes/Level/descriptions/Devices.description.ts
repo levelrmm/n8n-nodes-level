@@ -75,4 +75,120 @@ export const devicesFields: INodeProperties[] = [
                         },
                 },
         },
+
+        {
+                displayName: 'Page',
+                name: 'page',
+                type: 'number',
+                default: 1,
+                description: 'Page number for pagination when using page/per_page style pagination',
+                displayOptions: {
+                        show: {
+                                resource: ['devices'],
+                                operation: ['list'],
+                        },
+                },
+        },
+
+        {
+                displayName: 'Starting After',
+                name: 'starting_after',
+                type: 'string',
+                default: '',
+                description: 'A cursor for use in pagination. Provide the ID of the last object from the previous page to fetch the next page of results.',
+                displayOptions: {
+                        show: {
+                                resource: ['devices'],
+                                operation: ['list'],
+                        },
+                },
+        },
+
+        {
+                displayName: 'Ending Before',
+                name: 'ending_before',
+                type: 'string',
+                default: '',
+                description: 'A cursor for use in pagination. Provide the ID of the first object from the current page to fetch the previous page of results.',
+                displayOptions: {
+                        show: {
+                                resource: ['devices'],
+                                operation: ['list'],
+                        },
+                },
+        },
+
+        {
+                displayName: 'Additional Query Parameters',
+                name: 'additionalQuery',
+                type: 'fixedCollection',
+                placeholder: 'Add Parameter',
+                default: {},
+                options: [
+                        {
+                                name: 'parameters',
+                                displayName: 'Parameters',
+                                values: [
+                                        {
+                                                displayName: 'Key',
+                                                name: 'key',
+                                                type: 'string',
+                                                default: '',
+                                                description: 'Query string parameter name as accepted by the Level API for this endpoint',
+                                        },
+                                        {
+                                                displayName: 'Value',
+                                                name: 'value',
+                                                type: 'string',
+                                                default: '',
+                                                description: 'Value to send for this parameter',
+                                        },
+                                ],
+                        },
+                ],
+                description: 'Pass any additional query parameters supported by this endpoint.',
+                displayOptions: {
+                        show: {
+                                resource: ['devices'],
+                                operation: ['list'],
+                        },
+                },
+        },
+
+        {
+                displayName: 'Additional Query Parameters',
+                name: 'additionalQuery',
+                type: 'fixedCollection',
+                placeholder: 'Add Parameter',
+                default: {},
+                options: [
+                        {
+                                name: 'parameters',
+                                displayName: 'Parameters',
+                                values: [
+                                        {
+                                                displayName: 'Key',
+                                                name: 'key',
+                                                type: 'string',
+                                                default: '',
+                                                description: 'Query string parameter name as accepted by the Level API for this endpoint',
+                                        },
+                                        {
+                                                displayName: 'Value',
+                                                name: 'value',
+                                                type: 'string',
+                                                default: '',
+                                                description: 'Value to send for this parameter',
+                                        },
+                                ],
+                        },
+                ],
+                description: 'Pass any additional query parameters supported by this endpoint.',
+                displayOptions: {
+                        show: {
+                                resource: ['devices'],
+                                operation: ['get'],
+                        },
+                },
+        },
 ];
