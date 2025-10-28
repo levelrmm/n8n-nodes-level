@@ -65,7 +65,9 @@ export class Level implements INodeType {
 			if (Array.isArray(res)) return res as IDataObject[];
 			if (res && typeof res === 'object') {
 				const obj = res as IDataObject;
+				// respect explicit responsePropertyName first
 				if (propName && Array.isArray((obj as any)[propName])) return (obj as any)[propName] as IDataObject[];
+				// heuristic unwraps
 				for (const k of ['devices', 'groups', 'alerts', 'data', 'items']) {
 					if (Array.isArray((obj as any)[k])) return (obj as any)[k] as IDataObject[];
 				}
@@ -145,16 +147,35 @@ export class Level implements INodeType {
 						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
 						const options = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
 
+						// Named options mapped to query
 						if ((options as any).groupId) qs['group_id'] = (options as any).groupId as string;
 						if ((options as any).ancestorGroupId) qs['ancestor_group_id'] = (options as any).ancestorGroupId as string;
+
 						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
 						if ((options as any).includeCpus) qs['include_cpus'] = true;
 						if ((options as any).includeMemory) qs['include_memory'] = true;
 						if ((options as any).includeDisks) qs['include_disks'] = true;
 						if ((options as any).includeNetworkInterfaces) qs['include_network_interfaces'] = true;
+
 						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
 						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
+
+						// Merge arbitrary extraQuery key/value pairs
 						appendExtraQuery(qs, options);
+
+						// ✅ NEW: generic "filters" collection (if defined in your descriptions) merged into qs
+						// This allows you to add optional fields under a single "Additional Fields"/"Filters" collection
+						// without needing to hardcode every param here.
+						const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
+						if (filters && typeof filters === 'object') {
+							for (const [key, val] of Object.entries(filters)) {
+								if (val === undefined || val === null) continue;
+								if (typeof val === 'string' && val.trim() === '') continue;
+								// allow dateTime UI types to pass Dates
+								// @ts-expect-error runtime guard
+								qs[key] = val instanceof Date ? val.toISOString() : val;
+							}
+						}
 
 						if (!returnAll) {
 							qs.limit = limit;
@@ -172,6 +193,17 @@ export class Level implements INodeType {
 						if ((options as any).includeDisks) qs['include_disks'] = true;
 						if ((options as any).includeNetworkInterfaces) qs['include_network_interfaces'] = true;
 						appendExtraQuery(qs, options);
+
+						// also accept generic filters on GET if provided
+						const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
+						if (filters && typeof filters === 'object') {
+							for (const [key, val] of Object.entries(filters)) {
+								if (val === undefined || val === null) continue;
+								if (typeof val === 'string' && val.trim() === '') continue;
+								// @ts-expect-error runtime guard
+								qs[key] = val instanceof Date ? val.toISOString() : val;
+							}
+						}
 
 						response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
 					} else {
