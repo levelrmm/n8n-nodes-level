@@ -140,74 +140,58 @@ export class Level implements INodeType {
 					}
 				}
 
-				// -------- Devices --------
+			// -------- Devices --------
 				else if (resource === 'device') {
-					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
-						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
-						const options = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
-
-						// Named options mapped to query
-						if ((options as any).groupId) qs['group_id'] = (options as any).groupId as string;
-						if ((options as any).ancestorGroupId) qs['ancestor_group_id'] = (options as any).ancestorGroupId as string;
-
-						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
-						if ((options as any).includeCpus) qs['include_cpus'] = true;
-						if ((options as any).includeMemory) qs['include_memory'] = true;
-						if ((options as any).includeDisks) qs['include_disks'] = true;
-						if ((options as any).includeNetworkInterfaces) qs['include_network_interfaces'] = true;
-
-						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
-						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
-
-						// Merge arbitrary extraQuery key/value pairs
-						appendExtraQuery(qs, options);
-
-						// ✅ NEW: generic "filters" collection (if defined in your descriptions) merged into qs
-						// This allows you to add optional fields under a single "Additional Fields"/"Filters" collection
-						// without needing to hardcode every param here.
-						const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
-						if (filters && typeof filters === 'object') {
-							for (const [key, val] of Object.entries(filters)) {
-								if (val === undefined || val === null) continue;
-								if (typeof val === 'string' && val.trim() === '') continue;
-								// allow dateTime UI types to pass Dates
-								qs[key] = val instanceof Date ? val.toISOString() : val;
-							}
-						}
-
-						if (!returnAll) {
-							qs.limit = limit;
-							response = await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
-						} else {
-							response = await fetchAllCursor('/devices', qs, 100);
-						}
-					} else if (operation === 'get') {
-						const id = this.getNodeParameter('id', itemIndex) as string;
-						const options = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
-
-						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
-						if ((options as any).includeCpus) qs['include_cpus'] = true;
-						if ((options as any).includeMemory) qs['include_memory'] = true;
-						if ((options as any).includeDisks) qs['include_disks'] = true;
-						if ((options as any).includeNetworkInterfaces) qs['include_network_interfaces'] = true;
-						appendExtraQuery(qs, options);
-
-						// also accept generic filters on GET if provided
-						const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
-						if (filters && typeof filters === 'object') {
-							for (const [key, val] of Object.entries(filters)) {
-								if (val === undefined || val === null) continue;
-								if (typeof val === 'string' && val.trim() === '') continue;
-								qs[key] = val instanceof Date ? val.toISOString() : val;
-							}
-						}
-
-						response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
-					} else {
-						throw new Error(`Unsupported devices operation: ${operation}`);
-					}
+				  if (operation === 'list') {
+				    const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+				    const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
+				
+				    // IMPORTANT: matches the new description file
+				    const af = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+				
+				    const qs: IDataObject = {};
+				
+				    // examples if you added these to Additional Fields later:
+				    // if (af.search) qs.search = af.search as string;
+				    // if (af.group_id) qs.group_id = af.group_id as string;
+				    // if (af.status) qs.status = af.status as string;
+				    // if (af.os) qs.os = af.os as string;
+				    // if (af.platform) qs.platform = af.platform as string;
+				    // if (af.page) qs.page = af.page as number;
+				    // if (af.per_page) qs.per_page = af.per_page as number; // only if your API supports this
+				
+				    // Limit MUST be `limit` to match your API and the UI field
+				    if (!returnAll) qs.limit = limit;
+				
+				    // Fetch
+				    response = returnAll
+				      ? await fetchAllCursor('/devices', qs, 100)
+				      : await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
+				  }
+				
+				  else if (operation === 'get') {
+				    const id = this.getNodeParameter('id', itemIndex) as string;
+				    const opts = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
+				
+				    const qs: IDataObject = {};
+				    if (opts.includeOperatingSystem)   qs.include_operating_system   = true;
+				    if (opts.includeCpus)              qs.include_cpus               = true;
+				    if (opts.includeMemory)            qs.include_memory             = true;
+				    if (opts.includeDisks)             qs.include_disks              = true;
+				    if (opts.includeNetworkInterfaces) qs.include_network_interfaces = true;
+				
+				    // extras
+				    const pairs = (opts?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
+				    if (Array.isArray(pairs)) for (const p of pairs) if (p?.key) qs[p.key as string] = (p.value as string) ?? '';
+				
+				    response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
+				  }
+				
+				  else {
+				    throw new Error(`Unsupported devices operation: ${operation}`);
+				  }
 				}
+
 
 				// -------- Groups --------
 				else if (resource === 'group') {
