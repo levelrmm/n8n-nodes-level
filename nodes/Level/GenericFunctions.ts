@@ -10,7 +10,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
-const DEFAULT_BASE_URL = 'https://api.level.io/v1';
+const DEFAULT_BASE_URL = 'https://api.level.io/v2';
 
 export async function levelApiRequest(
         this: IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions | IHookFunctions,
@@ -22,8 +22,8 @@ export async function levelApiRequest(
 ): Promise<IDataObject | IDataObject[]> {
         const credentials = await this.getCredentials('levelApi');
 
+        const credentials = await this.getCredentials('levelApi');
         const baseUrl = (credentials.baseUrl as string | undefined) || DEFAULT_BASE_URL;
-        const apiKey = credentials.apiKey as string;
 
         const options: IHttpRequestOptions = {
                 method,
@@ -46,7 +46,11 @@ export async function levelApiRequest(
         }
 
         try {
-                return (await this.helpers.httpRequest(options)) as IDataObject | IDataObject[];
+                return (await this.helpers.httpRequestWithAuthentication.call(
+                        this,
+                        'levelApi',
+                        options,
+                )) as IDataObject | IDataObject[];
         } catch (error) {
                 throw new NodeApiError(this.getNode(), error as JsonObject);
         }
