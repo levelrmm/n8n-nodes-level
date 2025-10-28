@@ -85,7 +85,7 @@ export class Level implements INodeType {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						const limit = this.getNodeParameter('limit', i, 20) as number;
-						const options = this.getNodeParameter('options', i, {}) as IDataObject;
+						const options = this.getNodeParameter('alertsListOptions', i, {}) as IDataObject;
 						if (!returnAll) qs.limit = limit;
 						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
 						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
@@ -104,7 +104,7 @@ export class Level implements INodeType {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						const limit = this.getNodeParameter('limit', i, 20) as number;
-						const options = this.getNodeParameter('options', i, {}) as IDataObject;
+						const options = this.getNodeParameter('devicesListOptions', i, {}) as IDataObject;
 						if ((options as any).groupId) qs['group_id'] = (options as any).groupId as string;
 						if ((options as any).ancestorGroupId) qs['ancestor_group_id'] = (options as any).ancestorGroupId as string;
 						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
@@ -124,7 +124,7 @@ export class Level implements INodeType {
 						}
 					} else if (operation === 'get') {
 						const id = this.getNodeParameter('id', i) as string;
-						const options = this.getNodeParameter('options', i, {}) as IDataObject;
+						const options = this.getNodeParameter('devicesGetOptions', i, {}) as IDataObject;
 						if ((options as any).includeOperatingSystem) qs['include_operating_system'] = true;
 						if ((options as any).includeCpus) qs['include_cpus'] = true;
 						if ((options as any).includeMemory) qs['include_memory'] = true;
@@ -141,7 +141,7 @@ export class Level implements INodeType {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 						const limit = this.getNodeParameter('limit', i, 20) as number;
-						const options = this.getNodeParameter('options', i, {}) as IDataObject;
+						const options = this.getNodeParameter('groupsListOptions', i, {}) as IDataObject;
 						if ((options as any).parentId) qs['parent_id'] = (options as any).parentId as string;
 						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
 						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
