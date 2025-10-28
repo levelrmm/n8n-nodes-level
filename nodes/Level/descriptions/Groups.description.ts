@@ -11,7 +11,7 @@ export const groupsFields: INodeProperties[] = [
 	{ displayName: 'Group ID', name: 'id', type: 'string', required: true, default: '', description: 'The ID of the group to retrieve.', displayOptions: { show: { resource: ['groups'], operation: ['get'] } } },
 	{ displayName: 'Return All', name: 'returnAll', type: 'boolean', default: false, description: 'Fetch all pages automatically using cursor pagination (starting_after).', displayOptions: { show: { resource: ['groups'], operation: ['list'] } } },
 	{ displayName: 'Limit', name: 'limit', type: 'number', default: 20, typeOptions: { minValue: 1, maxValue: 100 }, description: 'A limit on the number of objects to be returned. Range 1 to 100. Default is 20.', displayOptions: { show: { resource: ['groups'], operation: ['list'], returnAll: [false] } } },
-	{ displayName: 'Options', name: 'options', type: 'collection', placeholder: 'Add Option', default: {}, displayOptions: { show: { resource: ['groups'], operation: ['list'] } }, options: [
+	{ displayName: 'List Options', name: 'groupsListOptions', type: 'collection', placeholder: 'Add Option', default: {}, displayOptions: { show: { resource: ['groups'], operation: ['list'] } }, options: [
 		{ displayName: 'Parent Group ID', name: 'parentId', type: 'string', default: '', description: "Filter to only include groups with the given parent group ID (parent_id). If 'null' is provided, only groups without a parent are returned." },
 		{ displayName: 'Starting After', name: 'startingAfter', type: 'string', default: '', description: 'Cursor for pagination (starting_after).' },
 		{ displayName: 'Ending Before', name: 'endingBefore', type: 'string', default: '', description: 'Cursor for reverse pagination (ending_before).' },

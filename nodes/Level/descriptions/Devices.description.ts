@@ -26,8 +26,8 @@ export const devicesFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['devices'], operation: ['get'] } },
 	},
 	{
-		displayName: 'Options',
-		name: 'options',
+		displayName: 'Get Options',
+		name: 'devicesGetOptions',
 		type: 'collection',
 		placeholder: 'Add Option',
 		default: {},
@@ -45,8 +45,8 @@ export const devicesFields: INodeProperties[] = [
 	{ displayName: 'Return All', name: 'returnAll', type: 'boolean', default: false, description: 'Fetch all pages automatically using cursor pagination (starting_after).', displayOptions: { show: { resource: ['devices'], operation: ['list'] } } },
 	{ displayName: 'Limit', name: 'limit', type: 'number', default: 20, typeOptions: { minValue: 1, maxValue: 100 }, description: 'A limit on the number of objects to be returned. Range 1 to 100. Default is 20.', displayOptions: { show: { resource: ['devices'], operation: ['list'], returnAll: [false] } } },
 	{
-		displayName: 'Options',
-		name: 'options',
+		displayName: 'List Options',
+		name: 'devicesListOptions',
 		type: 'collection',
 		placeholder: 'Add Option',
 		default: {},
