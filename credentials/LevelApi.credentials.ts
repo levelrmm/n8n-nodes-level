@@ -7,11 +7,9 @@ import type {
 
 export class LevelApi implements ICredentialType {
         name = 'levelApi';
-
         displayName = 'Level API';
-
+        icon = 'file:../nodes/Level/level.svg';
         documentationUrl = 'https://levelapi.readme.io/reference/getting-started-with-your-api';
-
         authenticate: IAuthenticateGeneric = {
                 type: 'generic',
                 properties: {
