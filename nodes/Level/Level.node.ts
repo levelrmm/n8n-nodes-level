@@ -57,7 +57,7 @@ export class Level implements INodeType {
 			const q: IDataObject = { ...baseQuery };
 			delete q['starting_after'];
 			while (true) {
-				const pageQs: IDataObject = { **q, limit: perPage } as any;
+				const pageQs: IDataObject = { ...q, limit: perPage };
 				if (cursor) (pageQs as any)['starting_after'] = cursor;
 				const page = await levelApiRequest.call(that, 'GET', endpoint, {}, pageQs);
 				const arr = asArray(page, '');
@@ -97,7 +97,7 @@ export class Level implements INodeType {
 						const id = this.getNodeParameter('id', i) as string;
 						resp = await levelApiRequest.call(this, 'GET', `/alerts/${id}`, {}, {});
 					} else {
-						throw new Error(`Unsupported alerts operation: ${operation}`);
+						throw new Error('Unsupported alerts operation: ' + operation);
 					}
 				}
 				else if (resource === 'devices') {
@@ -134,7 +134,7 @@ export class Level implements INodeType {
 						if (Array.isArray(kv)) for (const p of kv) if (p.key) qs[p.key as string] = p.value as string;
 						resp = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
 					} else {
-						throw new Error(`Unsupported devices operation: ${operation}`);
+						throw new Error('Unsupported devices operation: ' + operation);
 					}
 				}
 				else if (resource === 'groups') {
@@ -157,11 +157,11 @@ export class Level implements INodeType {
 						const id = this.getNodeParameter('id', i) as string;
 						resp = await levelApiRequest.call(this, 'GET', `/groups/${id}`, {}, {});
 					} else {
-						throw new Error(`Unsupported groups operation: ${operation}`);
+						throw new Error('Unsupported groups operation: ' + operation);
 					}
 				}
 				else {
-					throw new Error(`Unsupported resource: ${resource}`);
+					throw new Error('Unsupported resource: ' + resource);
 				}
 				out.push(...asArray(resp, responseProp));
 			} catch (err) {
