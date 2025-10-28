@@ -142,56 +142,78 @@ export class Level implements INodeType {
 
 			// -------- Devices --------
 				else if (resource === 'device') {
-				  if (operation === 'list') {
-				    const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
-				    const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
+					if (operation === 'list') {
+						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
 				
-				    // IMPORTANT: matches the new description file
-				    const af = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+						// MUST match the collection name in Devices.description.ts
+						const listOpts = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
 				
-				    const qs: IDataObject = {};
+						const qs: IDataObject = {};
 				
-				    // examples if you added these to Additional Fields later:
-				    // if (af.search) qs.search = af.search as string;
-				    // if (af.group_id) qs.group_id = af.group_id as string;
-				    // if (af.status) qs.status = af.status as string;
-				    // if (af.os) qs.os = af.os as string;
-				    // if (af.platform) qs.platform = af.platform as string;
-				    // if (af.page) qs.page = af.page as number;
-				    // if (af.per_page) qs.per_page = af.per_page as number; // only if your API supports this
+						// map common filters if present in your description
+						if (listOpts.groupId) qs['group_id'] = listOpts.groupId as string;
+						if (listOpts.ancestorGroupId) qs['ancestor_group_id'] = listOpts.ancestorGroupId as string;
 				
-				    // Limit MUST be `limit` to match your API and the UI field
-				    if (!returnAll) qs.limit = limit;
+						// include flags
+						if (listOpts.includeOperatingSystem)   qs['include_operating_system']   = true;
+						if (listOpts.includeCpus)              qs['include_cpus']               = true;
+						if (listOpts.includeMemory)            qs['include_memory']             = true;
+						if (listOpts.includeDisks)             qs['include_disks']              = true;
+						if (listOpts.includeNetworkInterfaces) qs['include_network_interfaces'] = true;
 				
-				    // Fetch
-				    response = returnAll
-				      ? await fetchAllCursor('/devices', qs, 100)
-				      : await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
-				  }
+						// cursor pagination (if your API supports it)
+						if (listOpts.startingAfter) qs['starting_after'] = listOpts.startingAfter as string;
+						if (listOpts.endingBefore)  qs['ending_before']  = listOpts.endingBefore as string;
 				
-				  else if (operation === 'get') {
-				    const id = this.getNodeParameter('id', itemIndex) as string;
-				    const opts = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
+						// extra query pairs
+						const pairs = (listOpts?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
+						if (Array.isArray(pairs)) {
+							for (const p of pairs) {
+								const k = (p?.key as string) ?? '';
+								if (!k) continue;
+								qs[k] = (p?.value as string) ?? '';
+							}
+						}
 				
-				    const qs: IDataObject = {};
-				    if (opts.includeOperatingSystem)   qs.include_operating_system   = true;
-				    if (opts.includeCpus)              qs.include_cpus               = true;
-				    if (opts.includeMemory)            qs.include_memory             = true;
-				    if (opts.includeDisks)             qs.include_disks              = true;
-				    if (opts.includeNetworkInterfaces) qs.include_network_interfaces = true;
+						// IMPORTANT: only set one of these depending on your API.
+						// If your API expects `per_page`, uncomment the next line and remove `qs.limit`.
+						// qs.per_page = returnAll ? undefined : limit;
 				
-				    // extras
-				    const pairs = (opts?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
-				    if (Array.isArray(pairs)) for (const p of pairs) if (p?.key) qs[p.key as string] = (p.value as string) ?? '';
+						if (!returnAll) qs.limit = limit;
 				
-				    response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
-				  }
+						response = returnAll
+							? await fetchAllCursor('/devices', qs, 100)
+							: await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
+					}
 				
-				  else {
-				    throw new Error(`Unsupported devices operation: ${operation}`);
-				  }
+					else if (operation === 'get') {
+						const id   = this.getNodeParameter('id', itemIndex) as string;
+						const opts = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
+				
+						const qs: IDataObject = {};
+						if (opts.includeOperatingSystem)   qs['include_operating_system']   = true;
+						if (opts.includeCpus)              qs['include_cpus']               = true;
+						if (opts.includeMemory)            qs['include_memory']             = true;
+						if (opts.includeDisks)             qs['include_disks']              = true;
+						if (opts.includeNetworkInterfaces) qs['include_network_interfaces'] = true;
+				
+						const pairs = (opts?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
+						if (Array.isArray(pairs)) {
+							for (const p of pairs) {
+								const k = (p?.key as string) ?? '';
+								if (!k) continue;
+								qs[k] = (p?.value as string) ?? '';
+							}
+						}
+				
+						response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
+					}
+				
+					else {
+						throw new Error(`Unsupported devices operation: ${operation}`);
+					}
 				}
-
 
 				// -------- Groups --------
 				else if (resource === 'group') {
