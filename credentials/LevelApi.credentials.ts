@@ -11,11 +11,6 @@ export class LevelApi implements ICredentialType {
 
         displayName = 'Level API';
 
-        icon: Icon = {
-                light: 'file:levelLight.svg',
-                dark: 'file:levelDark.svg',
-        };
-
         documentationUrl = 'https://levelapi.readme.io/reference/getting-started-with-your-api';
 
         authenticate: IAuthenticateGeneric = {
