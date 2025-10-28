@@ -3,12 +3,16 @@ import type {
         ICredentialTestRequest,
         ICredentialType,
         INodeProperties,
+        Icon,
 } from 'n8n-workflow';
 
 export class LevelApi implements ICredentialType {
         name = 'levelApi';
         displayName = 'Level API';
-        icon = 'file:../nodes/Level/level.svg';
+        icon: Icon = {
+                light: 'file:../nodes/Level/level.svg',
+                dark:  'file:../nodes/Level/level.svg',
+        };
         documentationUrl = 'https://levelapi.readme.io/reference/getting-started-with-your-api';
         authenticate: IAuthenticateGeneric = {
                 type: 'generic',
