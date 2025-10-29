@@ -165,7 +165,7 @@ export const groupFields: INodeProperties[] = [
                                 description: 'Additional query string parameters supported by the API',
                                 routing: {
                                         request: {
-                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {} as Record<string, string>) || {}}}' as unknown as IDataObject,
+                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
                                         },
                                 },
                         },
