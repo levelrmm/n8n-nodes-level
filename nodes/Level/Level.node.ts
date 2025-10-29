@@ -8,10 +8,9 @@ import type {
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { levelApiRequest } from './GenericFunctions';
-
-import { alertsFields, alertsOperations } from './descriptions/Alert.description';
+import { alertFields,  alertOperations  } from './descriptions/Alert.description';
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
-import { groupsFields, groupsOperations } from './descriptions/Group.description';
+import { groupFields,  groupOperations  } from './descriptions/Group.description';
 
 export class Level implements INodeType {
 	description: INodeTypeDescription = {
@@ -39,17 +38,17 @@ export class Level implements INodeType {
 				],
 				default: 'device',
 								},
-						  // Alerts
-					      ...alertsOperations,
-					      ...alertsFields,
-					
-					      // Devices
-					      ...deviceOperations,
-					      ...deviceFields,
-					
-					      // Groups
-					      ...groupsOperations,
-					      ...groupsFields,
+							   // Alerts
+							   ...alertOperations,
+							   ...alertFields,
+							
+							    // Devices
+							    ...deviceOperations,
+							    ...deviceFields,
+							
+							   // Groups
+							   ...groupOperations,
+							   ...groupFields,
 			{
 				displayName: 'Response Property Name',
 				name: 'responsePropertyName',
