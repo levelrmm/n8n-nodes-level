@@ -5,13 +5,13 @@ export const automationProperties = [
         name: 'automationId',
         type: 'string',
         default: '',
-        description: 'The unique ID of the automation.',
+        description: 'The unique ID of the automation',
     },
     {
         displayName: 'Automation Name',
         name: 'automationName',
         type: 'string',
         default: '',
-        description: 'The name of the automation.',
+        description: 'The name of the automation',
     },
 ];

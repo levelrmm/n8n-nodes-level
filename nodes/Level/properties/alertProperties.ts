@@ -5,13 +5,13 @@ export const alertProperties = [
         name: 'alertId',
         type: 'string',
         default: '',
-        description: 'The unique ID of the alert.',
+        description: 'The unique ID of the alert',
     },
     {
         displayName: 'Alert Name',
         name: 'alertName',
         type: 'string',
         default: '',
-        description: 'The name of the alert.',
+        description: 'The name of the alert',
     },
 ];

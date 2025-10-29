@@ -16,29 +16,32 @@ const DEFAULT_BASE_URL = 'https://api.level.io/v2';
  * Single request using the Level credential.
  */
 export async function levelApiRequest(
-	this: IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions | IHookFunctions,
-	method: IHttpRequestMethods,
-	endpoint: string,
-	body: IDataObject = {},
-	qs: IDataObject = {},
-	option: Partial<IHttpRequestOptions> = {},
-) {
+        this: IExecuteFunctions | ILoadOptionsFunctions | IWebhookFunctions | IHookFunctions,
+        method: IHttpRequestMethods,
+        endpoint: string,
+        body: IDataObject = {},
+        qs: IDataObject = {},
+        option: Partial<IHttpRequestOptions> = {},
+): Promise<IDataObject | IDataObject[]> {
 	const creds = (await this.getCredentials('levelApi')) as { baseUrl?: string } | undefined;
 	const baseUrl = (creds?.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, '');
 	const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 	const computedUrl = `${baseUrl}${path}`;
 
-	// Avoid duplicate 'url' property errors if caller passes it in option
-	const { url: _ignored, ...optionWithoutUrl } = option;
+        const options: IHttpRequestOptions = {
+                ...option,
+                method,
+                url: computedUrl,
+                json: true,
+        };
 
-	const options: IHttpRequestOptions = {
-		method,
-		url: computedUrl,
-		json: true,
-		...(Object.keys(body).length ? { body } : {}),
-		...(Object.keys(qs).length ? { qs } : {}),
-		...optionWithoutUrl,
-	};
+        if (Object.keys(body).length) {
+                options.body = body;
+        }
+
+        if (Object.keys(qs).length) {
+                options.qs = qs;
+        }
 
 	try {
 		return (await this.helpers.httpRequestWithAuthentication.call(
@@ -69,17 +72,25 @@ export async function levelApiRequestAllItems(
 	const perPage = Number(qs.per_page ?? qs.limit ?? 100);
 
 	for (;;) {
-		const response = (await levelApiRequest.call(
-			this,
-			method,
-			endpoint,
-			body,
-			{ ...qs, page, per_page: perPage },
-			option,
-		)) as IDataObject;
+                const response = await levelApiRequest.call(
+                        this,
+                        method,
+                        endpoint,
+                        body,
+                        { ...qs, page, per_page: perPage },
+                        option,
+                );
 
-		const container = propertyName ? (response as any)[propertyName] : (response as any);
-		const items: IDataObject[] = Array.isArray(container) ? container : [];
+                const container =
+                        propertyName && !Array.isArray(response)
+                                ? response[propertyName]
+                                : response;
+
+                const items: IDataObject[] = Array.isArray(container)
+                        ? (container as IDataObject[])
+                        : Array.isArray(response)
+                        ? (response as IDataObject[])
+                        : [];
 		results.push(...items);
 
 		if (items.length < perPage) break;
