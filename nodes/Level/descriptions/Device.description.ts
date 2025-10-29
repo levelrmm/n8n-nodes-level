@@ -203,8 +203,8 @@ export const deviceFields: INodeProperties[] = [
                 },
         },
         {
-                displayName: 'Additional Fields',
-                name: 'additionalFields',
+                displayName: 'Additional Fields (List)',
+                name: 'listAdditionalFields',
                 type: 'collection',
                 placeholder: 'Add Field',
                 default: {},
