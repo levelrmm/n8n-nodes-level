@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { IDataObject, INodeProperties } from 'n8n-workflow';
 
 export const groupOperations: INodeProperties[] = [
         {
@@ -165,7 +165,7 @@ export const groupFields: INodeProperties[] = [
                                 description: 'Additional query string parameters supported by the API',
                                 routing: {
                                         request: {
-                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {} as Record<string, string>) || {}}}',
+                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {} as Record<string, string>) || {}}}' as unknown as IDataObject,
                                         },
                                 },
                         },
