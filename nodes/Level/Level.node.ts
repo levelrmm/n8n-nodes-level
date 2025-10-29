@@ -9,9 +9,9 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { levelApiRequest } from './GenericFunctions';
 
-import { alertsFields, alertsOperations } from './descriptions/Alerts.description';
-import { devicesFields, devicesOperations } from './descriptions/Devices.description';
-import { groupsFields, groupsOperations } from './descriptions/Groups.description';
+import { alertFields, alertOperations } from './descriptions/Alert.description';
+import { deviceFields, deviceOperations } from './descriptions/Device.description';
+import { groupFields, groupOperations } from './descriptions/Group.description';
 
 export class Level implements INodeType {
 	description: INodeTypeDescription = {
@@ -39,12 +39,12 @@ export class Level implements INodeType {
 				],
 				default: 'device',
 			},
-			...alertsOperations,
-			...alertsFields,
-			...devicesOperations,
-			...devicesFields,
-			...groupsOperations,
-			...groupsFields,
+                        ...alertOperations,
+                        ...alertFields,
+                        ...deviceOperations,
+                        ...deviceFields,
+                        ...groupOperations,
+                        ...groupFields,
 			{
 				displayName: 'Response Property Name',
 				name: 'responsePropertyName',
@@ -68,7 +68,7 @@ export class Level implements INodeType {
 				// respect explicit responsePropertyName first
 				if (propName && Array.isArray((obj as any)[propName])) return (obj as any)[propName] as IDataObject[];
 				// heuristic unwraps
-				for (const k of ['devices', 'groups', 'alerts', 'data', 'items']) {
+                                for (const k of ['device', 'devices', 'group', 'groups', 'alert', 'alerts', 'data', 'items']) {
 					if (Array.isArray((obj as any)[k])) return (obj as any)[k] as IDataObject[];
 				}
 				return [obj];
@@ -118,7 +118,7 @@ export class Level implements INodeType {
 				let qs: IDataObject = {};
 				let response: unknown;
 
-				// -------- Alerts --------
+                                // -------- Alert --------
 				if (resource === 'alert') {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
@@ -136,17 +136,17 @@ export class Level implements INodeType {
 						const id = this.getNodeParameter('id', itemIndex) as string;
 						response = await levelApiRequest.call(this, 'GET', `/alerts/${id}`, {}, {});
 					} else {
-						throw new Error(`Unsupported alerts operation: ${operation}`);
+                                                throw new Error(`Unsupported alert operation: ${operation}`);
 					}
 				}
 
-			// -------- Devices --------
+                        // -------- Device --------
 				else if (resource === 'device') {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
 						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
 				
-						// MUST match the collection name in Devices.description.ts
+                                                // MUST match the collection name in Device.description.ts
 						const listOpts = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
 				
 						const qs: IDataObject = {};
@@ -210,12 +210,12 @@ export class Level implements INodeType {
 						response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
 					}
 				
-					else {
-						throw new Error(`Unsupported devices operation: ${operation}`);
+                                        else {
+                                                throw new Error(`Unsupported device operation: ${operation}`);
 					}
 				}
 
-				// -------- Groups --------
+                                // -------- Group --------
 				else if (resource === 'group') {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
@@ -236,8 +236,8 @@ export class Level implements INodeType {
 					} else if (operation === 'get') {
 						const id = this.getNodeParameter('id', itemIndex) as string;
 						response = await levelApiRequest.call(this, 'GET', `/groups/${id}`, {}, {});
-					} else {
-						throw new Error(`Unsupported groups operation: ${operation}`);
+                                        } else {
+                                                throw new Error(`Unsupported group operation: ${operation}`);
 					}
 				}
 

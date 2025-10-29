@@ -1,3 +1,3 @@
-export * from './Alerts.description';
-export * from './Devices.description';
-export * from './Groups.description';
+export * from './Alert.description';
+export * from './Device.description';
+export * from './Group.description';

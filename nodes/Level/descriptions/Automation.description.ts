@@ -1,6 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-export const automationsOperations: INodeProperties[] = [
+export const automationOperations: INodeProperties[] = [
         {
                 displayName: 'Operation',
                 name: 'operation',
@@ -23,7 +23,7 @@ export const automationsOperations: INodeProperties[] = [
         },
 ];
 
-export const automationsFields: INodeProperties[] = [
+export const automationFields: INodeProperties[] = [
         {
                 displayName: 'Token',
                 name: 'token',

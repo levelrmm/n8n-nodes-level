@@ -1,5 +1,5 @@
-// Property definitions for Devices
-export const devicesProperties = [
+// Property definitions for Device
+export const deviceProperties = [
     {
         displayName: 'Device ID',
         name: 'deviceId',

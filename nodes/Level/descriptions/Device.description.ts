@@ -1,6 +1,6 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-export const devicesOperations: INodeProperties[] = [
+export const deviceOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
 		name: 'operation',
@@ -19,7 +19,7 @@ export const devicesOperations: INodeProperties[] = [
 	},
 ];
 
-export const devicesFields: INodeProperties[] = [
+export const deviceFields: INodeProperties[] = [
 	// ---------- Device -> Get ----------
 	{
 		displayName: 'Device ID',

@@ -1,13 +1,13 @@
 import type { INodeProperties } from 'n8n-workflow';
 
-export const groupsOperations: INodeProperties[] = [
+export const groupOperations: INodeProperties[] = [
 	{ displayName: 'Operation', name: 'operation', type: 'options', noDataExpression: true, displayOptions: { show: { resource: ['group'] } }, options: [
 		{ name: 'List', value: 'list', action: 'List groups' },
 		{ name: 'Get', value: 'get', action: 'Get a group' },
 	], default: 'list' },
 ];
 
-export const groupsFields: INodeProperties[] = [
+export const groupFields: INodeProperties[] = [
 	{ displayName: 'Group ID', name: 'id', type: 'string', required: true, default: '', description: 'The ID of the group to retrieve.', displayOptions: { show: { resource: ['group'], operation: ['get'] } } },
 	{ displayName: 'Return All', name: 'returnAll', type: 'boolean', default: false, description: 'Fetch all pages automatically using cursor pagination (<code>starting_after</code>).', displayOptions: { show: { resource: ['group'], operation: ['list'] } } },
 	{ displayName: 'Limit', name: 'limit', type: 'number', default: 20, typeOptions: { minValue: 1, maxValue: 100 }, description: 'A limit on the number of objects to be returned. Range 1–100. Default is 20.', displayOptions: { show: { resource: ['group'], operation: ['list'], returnAll: [false] } } },

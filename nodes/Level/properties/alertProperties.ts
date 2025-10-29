@@ -1,5 +1,5 @@
-// Property definitions for Alerts
-export const alertsProperties = [
+// Property definitions for Alert
+export const alertProperties = [
     {
         displayName: 'Alert ID',
         name: 'alertId',

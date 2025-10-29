@@ -1,5 +1,5 @@
-// Property definitions for Automations
-export const automationsProperties = [
+// Property definitions for Automation
+export const automationProperties = [
     {
         displayName: 'Automation ID',
         name: 'automationId',
