@@ -9,9 +9,9 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { levelApiRequest } from './GenericFunctions';
 
-import { alertsFields, alertsOperations } from './descriptions/Alerts.description';
-import { devicesFields, devicesOperations } from './descriptions/Devices.description';
-import { groupsFields, groupsOperations } from './descriptions/Groups.description';
+import { alertFields, alertOperations } from './descriptions/Alert.description';
+import { deviceFields, deviceOperations } from './descriptions/Device.description';
+import { groupFields, groupOperations } from './descriptions/Group.description';
 
 export class Level implements INodeType {
 	description: INodeTypeDescription = {
@@ -39,12 +39,12 @@ export class Level implements INodeType {
 				],
 				default: 'device',
 			},
-			...alertsOperations,
-			...alertsFields,
-			...devicesOperations,
-			...devicesFields,
-			...groupsOperations,
-			...groupsFields,
+                        ...alertOperations,
+                        ...alertFields,
+                        ...deviceOperations,
+                        ...deviceFields,
+                        ...groupOperations,
+                        ...groupFields,
 			{
 				displayName: 'Response Property Name',
 				name: 'responsePropertyName',
@@ -61,53 +61,76 @@ export class Level implements INodeType {
 		const items = this.getInputData();
 		const returnData: IDataObject[] = [];
 
-		const asArray = (res: unknown, propName?: string): IDataObject[] => {
-			if (Array.isArray(res)) return res as IDataObject[];
-			if (res && typeof res === 'object') {
-				const obj = res as IDataObject;
-				// respect explicit responsePropertyName first
-				if (propName && Array.isArray((obj as any)[propName])) return (obj as any)[propName] as IDataObject[];
-				// heuristic unwraps
-				for (const k of ['devices', 'groups', 'alerts', 'data', 'items']) {
-					if (Array.isArray((obj as any)[k])) return (obj as any)[k] as IDataObject[];
-				}
-				return [obj];
-			}
-			return [];
-		};
+                const getArrayFromObject = (obj: IDataObject, key: string): IDataObject[] | undefined => {
+                        const value = obj[key];
+                        return Array.isArray(value) ? (value as IDataObject[]) : undefined;
+                };
 
-		const appendExtraQuery = (qs: IDataObject, collection: IDataObject | undefined) => {
-			const pairs = (collection?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
-			if (pairs && Array.isArray(pairs)) {
-				for (const p of pairs) {
-					const key = (p?.key as string) ?? '';
-					if (!key) continue;
-					qs[key] = p?.value as string;
-				}
-			}
-		};
+                const asArray = (res: unknown, propName?: string): IDataObject[] => {
+                        if (Array.isArray(res)) {
+                                return res as IDataObject[];
+                        }
 
-		const fetchAllCursor = async (endpoint: string, baseQuery: IDataObject, limitPerPage = 100) => {
-			const aggregated: IDataObject[] = [];
-			let cursor = baseQuery['starting_after'] as string | undefined;
-			const base: IDataObject = { ...baseQuery };
-			delete base['starting_after'];
+                        if (res && typeof res === 'object') {
+                                const obj = res as IDataObject;
+
+                                if (propName) {
+                                        const explicit = getArrayFromObject(obj, propName);
+                                        if (explicit) return explicit;
+                                }
+
+                                for (const key of ['device', 'devices', 'group', 'groups', 'alert', 'alerts', 'data', 'items']) {
+                                        const candidate = getArrayFromObject(obj, key);
+                                        if (candidate) return candidate;
+                                }
+
+                                return [obj];
+                        }
+
+                        return [];
+                };
+
+                const appendExtraQuery = (qs: IDataObject, collection: IDataObject | undefined) => {
+                        const extra = collection?.extraQuery;
+                        if (!extra || typeof extra !== 'object' || Array.isArray(extra)) {
+                                return;
+                        }
+
+                        const parameter = (extra as IDataObject).parameter;
+                        if (!Array.isArray(parameter)) {
+                                return;
+                        }
+
+                        for (const pair of parameter as Array<{ key?: string; value?: string }>) {
+                                if (!pair?.key || typeof pair.key !== 'string') continue;
+                                const trimmed = pair.key.trim();
+                                if (!trimmed) continue;
+                                qs[trimmed] = typeof pair.value === 'string' ? pair.value : '';
+                        }
+                };
+
+                const fetchAllCursor = async (endpoint: string, baseQuery: IDataObject, limitPerPage = 100) => {
+                        const aggregated: IDataObject[] = [];
+                        let cursor = baseQuery['starting_after'] as string | undefined;
+                        const base: IDataObject = { ...baseQuery };
+                        delete base['starting_after'];
 
 			while (true) {
 				const pageQs: IDataObject = { ...base, limit: limitPerPage };
 				if (cursor) pageQs['starting_after'] = cursor;
-				const pageResp = await levelApiRequest.call(this, 'GET', endpoint, {}, pageQs);
-				const itemsArr = asArray(pageResp);
-				if (!itemsArr.length) break;
-				aggregated.push(...itemsArr);
-				if (itemsArr.length < limitPerPage) break;
-				const last = itemsArr[itemsArr.length - 1];
-				const lastId = (last && typeof last === 'object') ? (last as any).id as string : undefined;
-				if (!lastId) break;
-				cursor = lastId;
-			}
-			return aggregated;
-		};
+                                const pageResp = await levelApiRequest.call(this, 'GET', endpoint, {}, pageQs);
+                                const itemsArr = asArray(pageResp);
+                                if (!itemsArr.length) break;
+                                aggregated.push(...itemsArr);
+                                if (itemsArr.length < limitPerPage) break;
+                                const last = itemsArr[itemsArr.length - 1];
+                                const lastIdValue = last ? last['id'] : undefined;
+                                const lastId = typeof lastIdValue === 'string' ? lastIdValue : undefined;
+                                if (!lastId) break;
+                                cursor = lastId;
+                        }
+                        return aggregated;
+                };
 
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			const resource = this.getNodeParameter('resource', itemIndex) as string;
@@ -115,135 +138,133 @@ export class Level implements INodeType {
 			const responseProp = this.getNodeParameter('responsePropertyName', itemIndex, '') as string;
 
 			try {
-				let qs: IDataObject = {};
-				let response: unknown;
+                                let response: unknown;
 
-				// -------- Alerts --------
-				if (resource === 'alert') {
-					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
-						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
-						const options = this.getNodeParameter('alertListOptions', itemIndex, {}) as IDataObject;
+                                // -------- Alert --------
+                                if (resource === 'alert') {
+                                        if (operation === 'list') {
+                                                const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+                                                const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+                                                const options = this.getNodeParameter('alertListOptions', itemIndex, {}) as IDataObject;
 
-						if (!returnAll) qs.limit = limit;
-						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
-						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
-						appendExtraQuery(qs, options);
+                                                const query: IDataObject = {};
+                                                if (options.startingAfter) query['starting_after'] = options.startingAfter as string;
+                                                if (options.endingBefore) query['ending_before'] = options.endingBefore as string;
+                                                appendExtraQuery(query, options);
 
-						if (returnAll) response = await fetchAllCursor('/alerts', qs, 100);
-						else response = await levelApiRequest.call(this, 'GET', '/alerts', {}, qs);
-					} else if (operation === 'get') {
-						const id = this.getNodeParameter('id', itemIndex) as string;
-						response = await levelApiRequest.call(this, 'GET', `/alerts/${id}`, {}, {});
-					} else {
-						throw new Error(`Unsupported alerts operation: ${operation}`);
-					}
-				}
+                                                if (!returnAll) {
+                                                        query.limit = limit;
+                                                        response = await levelApiRequest.call(this, 'GET', '/alerts', {}, query);
+                                                } else {
+                                                        response = await fetchAllCursor('/alerts', query, 100);
+                                                }
+                                        } else if (operation === 'get') {
+                                                const id = this.getNodeParameter('id', itemIndex) as string;
+                                                response = await levelApiRequest.call(this, 'GET', `/alerts/${id}`, {}, {});
+                                        } else {
+                                                throw new NodeOperationError(this.getNode(), `Unsupported alert operation: ${operation}`, {
+                                                        itemIndex,
+                                                });
+                                        }
+                                }
 
-			// -------- Devices --------
+                        // -------- Device --------
 				else if (resource === 'device') {
 					if (operation === 'list') {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
-						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
+                                            const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 				
-						// MUST match the collection name in Devices.description.ts
+                                                // MUST match the collection name in Device.description.ts
 						const listOpts = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
 				
-						const qs: IDataObject = {};
-				
-						// map common filters if present in your description
-						if (listOpts.groupId) qs['group_id'] = listOpts.groupId as string;
-						if (listOpts.ancestorGroupId) qs['ancestor_group_id'] = listOpts.ancestorGroupId as string;
-				
-						// include flags
-						if (listOpts.includeOperatingSystem)   qs['include_operating_system']   = true;
-						if (listOpts.includeCpus)              qs['include_cpus']               = true;
-						if (listOpts.includeMemory)            qs['include_memory']             = true;
-						if (listOpts.includeDisks)             qs['include_disks']              = true;
-						if (listOpts.includeNetworkInterfaces) qs['include_network_interfaces'] = true;
-				
-						// cursor pagination (if your API supports it)
-						if (listOpts.startingAfter) qs['starting_after'] = listOpts.startingAfter as string;
-						if (listOpts.endingBefore)  qs['ending_before']  = listOpts.endingBefore as string;
-				
-						// extra query pairs
-						const pairs = (listOpts?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
-						if (Array.isArray(pairs)) {
-							for (const p of pairs) {
-								const k = (p?.key as string) ?? '';
-								if (!k) continue;
-								qs[k] = (p?.value as string) ?? '';
-							}
-						}
-				
-						// IMPORTANT: only set one of these depending on your API.
-						// If your API expects `per_page`, uncomment the next line and remove `qs.limit`.
-						// qs.per_page = returnAll ? undefined : limit;
-				
-						if (!returnAll) qs.limit = limit;
-				
-						response = returnAll
-							? await fetchAllCursor('/devices', qs, 100)
-							: await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
-					}
-				
-					else if (operation === 'get') {
-						const id   = this.getNodeParameter('id', itemIndex) as string;
-						const opts = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
-				
-						const qs: IDataObject = {};
-						if (opts.includeOperatingSystem)   qs['include_operating_system']   = true;
-						if (opts.includeCpus)              qs['include_cpus']               = true;
-						if (opts.includeMemory)            qs['include_memory']             = true;
-						if (opts.includeDisks)             qs['include_disks']              = true;
-						if (opts.includeNetworkInterfaces) qs['include_network_interfaces'] = true;
-				
-						const pairs = (opts?.extraQuery as IDataObject)?.parameter as IDataObject[] | undefined;
-						if (Array.isArray(pairs)) {
-							for (const p of pairs) {
-								const k = (p?.key as string) ?? '';
-								if (!k) continue;
-								qs[k] = (p?.value as string) ?? '';
-							}
-						}
-				
-						response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, qs);
-					}
-				
-					else {
-						throw new Error(`Unsupported devices operation: ${operation}`);
-					}
-				}
+                                                const query: IDataObject = {};
 
-				// -------- Groups --------
-				else if (resource === 'group') {
-					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
-						const limit = this.getNodeParameter('limit', itemIndex, 20) as number;
-						const options = this.getNodeParameter('groupListOptions', itemIndex, {}) as IDataObject;
+                                                // map common filters if present in your description
+                                                if (listOpts.groupId) query['group_id'] = listOpts.groupId as string;
+                                                if (listOpts.ancestorGroupId) query['ancestor_group_id'] = listOpts.ancestorGroupId as string;
 
-						if ((options as any).parentId) qs['parent_id'] = (options as any).parentId as string;
-						if ((options as any).startingAfter) qs['starting_after'] = (options as any).startingAfter as string;
-						if ((options as any).endingBefore) qs['ending_before'] = (options as any).endingBefore as string;
-						appendExtraQuery(qs, options);
+                                                // include flags
+                                                if (listOpts.includeOperatingSystem)   query['include_operating_system']   = true;
+                                                if (listOpts.includeCpus)              query['include_cpus']               = true;
+                                                if (listOpts.includeMemory)            query['include_memory']             = true;
+                                                if (listOpts.includeDisks)             query['include_disks']              = true;
+                                                if (listOpts.includeNetworkInterfaces) query['include_network_interfaces'] = true;
 
-						if (!returnAll) {
-							qs.limit = limit;
-							response = await levelApiRequest.call(this, 'GET', '/groups', {}, qs);
-						} else {
-							response = await fetchAllCursor('/groups', qs, 100);
-						}
-					} else if (operation === 'get') {
-						const id = this.getNodeParameter('id', itemIndex) as string;
-						response = await levelApiRequest.call(this, 'GET', `/groups/${id}`, {}, {});
-					} else {
-						throw new Error(`Unsupported groups operation: ${operation}`);
-					}
-				}
+                                                // cursor pagination (if your API supports it)
+                                                if (listOpts.startingAfter) query['starting_after'] = listOpts.startingAfter as string;
+                                                if (listOpts.endingBefore)  query['ending_before']  = listOpts.endingBefore as string;
 
-				else {
-					throw new Error(`Unsupported resource: ${resource}`);
-				}
+                                                appendExtraQuery(query, listOpts);
+
+                                                // IMPORTANT: only set one of these depending on your API.
+                                                // If your API expects `per_page`, uncomment the next line and remove `qs.limit`.
+                                                // qs.per_page = returnAll ? undefined : limit;
+
+                                                if (!returnAll) query.limit = limit;
+
+                                                response = returnAll
+                                                        ? await fetchAllCursor('/devices', query, 100)
+                                                        : await levelApiRequest.call(this, 'GET', '/devices', {}, query);
+                                        }
+
+                                        else if (operation === 'get') {
+                                                const id   = this.getNodeParameter('id', itemIndex) as string;
+                                                const opts = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
+
+                                                const query: IDataObject = {};
+                                                if (opts.includeOperatingSystem)   query['include_operating_system']   = true;
+                                                if (opts.includeCpus)              query['include_cpus']               = true;
+                                                if (opts.includeMemory)            query['include_memory']             = true;
+                                                if (opts.includeDisks)             query['include_disks']              = true;
+                                                if (opts.includeNetworkInterfaces) query['include_network_interfaces'] = true;
+
+                                                appendExtraQuery(query, opts);
+
+                                                response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, query);
+                                        }
+
+                                        else {
+                                                throw new NodeOperationError(this.getNode(), `Unsupported device operation: ${operation}`, {
+                                                        itemIndex,
+                                                });
+                                        }
+                                }
+
+                                // -------- Group --------
+                                else if (resource === 'group') {
+                                        if (operation === 'list') {
+                                                const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+                                                const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+                                                const options = this.getNodeParameter('groupListOptions', itemIndex, {}) as IDataObject;
+
+                                                const query: IDataObject = {};
+
+                                                if (options.parentId) query['parent_id'] = options.parentId as string;
+                                                if (options.startingAfter) query['starting_after'] = options.startingAfter as string;
+                                                if (options.endingBefore) query['ending_before'] = options.endingBefore as string;
+                                                appendExtraQuery(query, options);
+
+                                                if (!returnAll) {
+                                                        query.limit = limit;
+                                                        response = await levelApiRequest.call(this, 'GET', '/groups', {}, query);
+                                                } else {
+                                                        response = await fetchAllCursor('/groups', query, 100);
+                                                }
+                                        } else if (operation === 'get') {
+                                                const id = this.getNodeParameter('id', itemIndex) as string;
+                                                response = await levelApiRequest.call(this, 'GET', `/groups/${id}`, {}, {});
+                                        } else {
+                                                throw new NodeOperationError(this.getNode(), `Unsupported group operation: ${operation}`, {
+                                                        itemIndex,
+                                                });
+                                        }
+                                }
+
+                                else {
+                                        throw new NodeOperationError(this.getNode(), `Unsupported resource: ${resource}`, {
+                                                itemIndex,
+                                        });
+                                }
 
 				const arr = asArray(response, responseProp);
 				returnData.push(...arr);

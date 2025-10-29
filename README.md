@@ -14,10 +14,10 @@ Follow the [community node installation guide](https://docs.n8n.io/integrations/
 
 | Resource | Operations |
 | --- | --- |
-| Alerts | Get alert by ID, List alerts |
-| Automations | Trigger webhook |
-| Devices | Get device by ID, List devices |
-| Groups | Get group by ID, List groups |
+| Alert | Get alert by ID, List alerts |
+| Automation | Trigger webhook |
+| Device | Get device by ID, List devices |
+| Group | Get group by ID, List groups |
 
 ### Level Trigger node
 
