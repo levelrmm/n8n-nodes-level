@@ -38,14 +38,18 @@ export class Level implements INodeType {
 					{ name: 'Group', value: 'group' },
 				],
 				default: 'device',
-			},
-			
-                        ...alertOperations,
-                        ...alertFields,
-                        ...deviceOperations,
-                        ...deviceFields,
-                        ...groupOperations,
-                        ...groupFields,
+								},
+						  // Alerts
+					      ...alertsOperations,
+					      ...alertsFields,
+					
+					      // Devices
+					      ...deviceOperations,
+					      ...deviceFields,
+					
+					      // Groups
+					      ...groupsOperations,
+					      ...groupsFields,
 			{
 				displayName: 'Response Property Name',
 				name: 'responsePropertyName',
