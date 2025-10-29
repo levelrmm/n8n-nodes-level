@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { IDataObject, INodeProperties } from 'n8n-workflow';
 
 export const alertOperations: INodeProperties[] = [
         {
@@ -12,8 +12,28 @@ export const alertOperations: INodeProperties[] = [
                         },
                 },
                 options: [
-                        { name: 'Get', value: 'get', action: 'Get an alert' },
-                        { name: 'List', value: 'list', action: 'List alerts' },
+                        {
+                                name: 'Get',
+                                value: 'get',
+                                action: 'Get an alert',
+                                routing: {
+                                        request: {
+                                                method: 'GET',
+                                                url: '=/alerts/{{$parameter["id"]}}',
+                                        },
+                                },
+                        },
+                        {
+                                name: 'List',
+                                value: 'list',
+                                action: 'List alerts',
+                                routing: {
+                                        request: {
+                                                method: 'GET',
+                                                url: '/alerts',
+                                        },
+                                },
+                        },
                 ],
                 default: 'list',
         },
@@ -61,9 +81,16 @@ export const alertFields: INodeProperties[] = [
                                 returnAll: [false],
                         },
                 },
+                routing: {
+                        request: {
+                                qs: {
+                                        limit: '={{$value}}',
+                                },
+                        },
+                },
         },
         {
-                displayName: 'Optional Fields',
+                displayName: 'List Options',
                 name: 'alertListOptions',
                 type: 'collection',
                 placeholder: 'Add Field',
@@ -82,6 +109,13 @@ export const alertFields: INodeProperties[] = [
                                 type: 'string',
                                 default: '',
                                 description: 'Cursor for pagination (<code>starting_after</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        starting_after: '={{$value}}',
+                                                },
+                                        },
+                                },
                         },
                         {
                                 displayName: 'Ending Before',
@@ -89,6 +123,13 @@ export const alertFields: INodeProperties[] = [
                                 type: 'string',
                                 default: '',
                                 description: 'Cursor for reverse pagination (<code>ending_before</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        ending_before: '={{$value}}',
+                                                },
+                                        },
+                                },
                         },
                         {
                                 displayName: 'Additional Query Parameters',
@@ -108,6 +149,11 @@ export const alertFields: INodeProperties[] = [
                                         },
                                 ],
                                 description: 'Additional query string parameters supported by the API',
+                                routing: {
+                                        request: {
+                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {} as Record<string, string>) || {}}}' as unknown as IDataObject,
+                                        },
+                                },
                         },
                 ],
         },
