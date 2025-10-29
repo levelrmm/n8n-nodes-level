@@ -12,8 +12,28 @@ export const groupOperations: INodeProperties[] = [
                         },
                 },
                 options: [
-                        { name: 'Get', value: 'get', action: 'Get a group' },
-                        { name: 'List', value: 'list', action: 'List groups' },
+                        {
+                                name: 'Get',
+                                value: 'get',
+                                action: 'Get a group',
+                                routing: {
+                                        request: {
+                                                method: 'GET',
+                                                url: '=/groups/{{$parameter["id"]}}',
+                                        },
+                                },
+                        },
+                        {
+                                name: 'List',
+                                value: 'list',
+                                action: 'List groups',
+                                routing: {
+                                        request: {
+                                                method: 'GET',
+                                                url: '/groups',
+                                        },
+                                },
+                        },
                 ],
                 default: 'list',
         },
@@ -61,6 +81,13 @@ export const groupFields: INodeProperties[] = [
                                 returnAll: [false],
                         },
                 },
+                routing: {
+                        request: {
+                                qs: {
+                                        limit: '={{$value}}',
+                                },
+                        },
+                },
         },
         {
                 displayName: 'Optional Fields',
@@ -82,6 +109,13 @@ export const groupFields: INodeProperties[] = [
                                 type: 'string',
                                 default: '',
                                 description: 'Filter by parent group ID (<code>parent_id</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        parent_id: '={{$value}}',
+                                                },
+                                        },
+                                },
                         },
                         {
                                 displayName: 'Starting After',
@@ -89,6 +123,13 @@ export const groupFields: INodeProperties[] = [
                                 type: 'string',
                                 default: '',
                                 description: 'Cursor for pagination (<code>starting_after</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        starting_after: '={{$value}}',
+                                                },
+                                        },
+                                },
                         },
                         {
                                 displayName: 'Ending Before',
@@ -96,6 +137,13 @@ export const groupFields: INodeProperties[] = [
                                 type: 'string',
                                 default: '',
                                 description: 'Cursor for reverse pagination (<code>ending_before</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        ending_before: '={{$value}}',
+                                                },
+                                        },
+                                },
                         },
                         {
                                 displayName: 'Additional Query Parameters',
@@ -115,6 +163,11 @@ export const groupFields: INodeProperties[] = [
                                         },
                                 ],
                                 description: 'Additional query string parameters supported by the API',
+                                routing: {
+                                        request: {
+                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {} as Record<string, string>) || {}}}',
+                                        },
+                                },
                         },
                 ],
         },
