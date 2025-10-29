@@ -174,7 +174,7 @@ export class Level implements INodeType {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
                                             const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 				
-                                                const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+                                                const additionalFields = this.getNodeParameter('listAdditionalFields', itemIndex, {}) as IDataObject;
 
                                                 const query: IDataObject = {};
 
