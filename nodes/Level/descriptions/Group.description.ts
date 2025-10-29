@@ -90,8 +90,8 @@ export const groupFields: INodeProperties[] = [
                 },
         },
         {
-                displayName: 'Optional Fields',
-                name: 'groupListOptions',
+                displayName: 'Additional Fields',
+                name: 'additionalFields',
                 type: 'collection',
                 placeholder: 'Add Field',
                 default: {},

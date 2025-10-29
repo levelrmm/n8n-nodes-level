@@ -90,8 +90,8 @@ export const alertFields: INodeProperties[] = [
                 },
         },
         {
-                displayName: 'List Options',
-                name: 'alertListOptions',
+                displayName: 'Additional Fields',
+                name: 'additionalFields',
                 type: 'collection',
                 placeholder: 'Add Field',
                 default: {},

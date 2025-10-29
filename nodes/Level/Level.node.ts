@@ -145,12 +145,12 @@ export class Level implements INodeType {
                                         if (operation === 'list') {
                                                 const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
                                                 const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-                                                const options = this.getNodeParameter('alertListOptions', itemIndex, {}) as IDataObject;
+                                                const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
                                                 const query: IDataObject = {};
-                                                if (options.startingAfter) query['starting_after'] = options.startingAfter as string;
-                                                if (options.endingBefore) query['ending_before'] = options.endingBefore as string;
-                                                appendExtraQuery(query, options);
+                                                if (additionalFields.startingAfter) query['starting_after'] = additionalFields.startingAfter as string;
+                                                if (additionalFields.endingBefore) query['ending_before'] = additionalFields.endingBefore as string;
+                                                appendExtraQuery(query, additionalFields);
 
                                                 if (!returnAll) {
                                                         query.limit = limit;
@@ -174,27 +174,26 @@ export class Level implements INodeType {
 						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
                                             const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 				
-                                                // MUST match the collection name in Device.description.ts
-						const listOpts = this.getNodeParameter('deviceListOptions', itemIndex, {}) as IDataObject;
-				
+                                                const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+
                                                 const query: IDataObject = {};
 
                                                 // map common filters if present in your description
-                                                if (listOpts.groupId) query['group_id'] = listOpts.groupId as string;
-                                                if (listOpts.ancestorGroupId) query['ancestor_group_id'] = listOpts.ancestorGroupId as string;
+                                                if (additionalFields.groupId) query['group_id'] = additionalFields.groupId as string;
+                                                if (additionalFields.ancestorGroupId) query['ancestor_group_id'] = additionalFields.ancestorGroupId as string;
 
                                                 // include flags
-                                                if (listOpts.includeOperatingSystem)   query['include_operating_system']   = true;
-                                                if (listOpts.includeCpus)              query['include_cpus']               = true;
-                                                if (listOpts.includeMemory)            query['include_memory']             = true;
-                                                if (listOpts.includeDisks)             query['include_disks']              = true;
-                                                if (listOpts.includeNetworkInterfaces) query['include_network_interfaces'] = true;
+                                                if (additionalFields.includeOperatingSystem)   query['include_operating_system']   = true;
+                                                if (additionalFields.includeCpus)              query['include_cpus']               = true;
+                                                if (additionalFields.includeMemory)            query['include_memory']             = true;
+                                                if (additionalFields.includeDisks)             query['include_disks']              = true;
+                                                if (additionalFields.includeNetworkInterfaces) query['include_network_interfaces'] = true;
 
                                                 // cursor pagination (if your API supports it)
-                                                if (listOpts.startingAfter) query['starting_after'] = listOpts.startingAfter as string;
-                                                if (listOpts.endingBefore)  query['ending_before']  = listOpts.endingBefore as string;
+                                                if (additionalFields.startingAfter) query['starting_after'] = additionalFields.startingAfter as string;
+                                                if (additionalFields.endingBefore)  query['ending_before']  = additionalFields.endingBefore as string;
 
-                                                appendExtraQuery(query, listOpts);
+                                                appendExtraQuery(query, additionalFields);
 
                                                 // IMPORTANT: only set one of these depending on your API.
                                                 // If your API expects `per_page`, uncomment the next line and remove `qs.limit`.
@@ -209,16 +208,16 @@ export class Level implements INodeType {
 
                                         else if (operation === 'get') {
                                                 const id   = this.getNodeParameter('id', itemIndex) as string;
-                                                const opts = this.getNodeParameter('deviceGetOptions', itemIndex, {}) as IDataObject;
+                                                const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
                                                 const query: IDataObject = {};
-                                                if (opts.includeOperatingSystem)   query['include_operating_system']   = true;
-                                                if (opts.includeCpus)              query['include_cpus']               = true;
-                                                if (opts.includeMemory)            query['include_memory']             = true;
-                                                if (opts.includeDisks)             query['include_disks']              = true;
-                                                if (opts.includeNetworkInterfaces) query['include_network_interfaces'] = true;
+                                                if (additionalFields.includeOperatingSystem)   query['include_operating_system']   = true;
+                                                if (additionalFields.includeCpus)              query['include_cpus']               = true;
+                                                if (additionalFields.includeMemory)            query['include_memory']             = true;
+                                                if (additionalFields.includeDisks)             query['include_disks']              = true;
+                                                if (additionalFields.includeNetworkInterfaces) query['include_network_interfaces'] = true;
 
-                                                appendExtraQuery(query, opts);
+                                                appendExtraQuery(query, additionalFields);
 
                                                 response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, query);
                                         }
@@ -235,14 +234,14 @@ export class Level implements INodeType {
                                         if (operation === 'list') {
                                                 const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
                                                 const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
-                                                const options = this.getNodeParameter('groupListOptions', itemIndex, {}) as IDataObject;
+                                                const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
                                                 const query: IDataObject = {};
 
-                                                if (options.parentId) query['parent_id'] = options.parentId as string;
-                                                if (options.startingAfter) query['starting_after'] = options.startingAfter as string;
-                                                if (options.endingBefore) query['ending_before'] = options.endingBefore as string;
-                                                appendExtraQuery(query, options);
+                                                if (additionalFields.parentId) query['parent_id'] = additionalFields.parentId as string;
+                                                if (additionalFields.startingAfter) query['starting_after'] = additionalFields.startingAfter as string;
+                                                if (additionalFields.endingBefore) query['ending_before'] = additionalFields.endingBefore as string;
+                                                appendExtraQuery(query, additionalFields);
 
                                                 if (!returnAll) {
                                                         query.limit = limit;
