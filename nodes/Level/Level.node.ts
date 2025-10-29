@@ -9,9 +9,9 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { levelApiRequest } from './GenericFunctions';
 
-import { alertFields, alertOperations } from './descriptions/Alert.description';
+import { alertsFields, alertsOperations } from './descriptions/Alert.description';
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
-import { groupFields, groupOperations } from './descriptions/Group.description';
+import { groupsFields, groupsOperations } from './descriptions/Group.description';
 
 export class Level implements INodeType {
 	description: INodeTypeDescription = {
@@ -39,6 +39,7 @@ export class Level implements INodeType {
 				],
 				default: 'device',
 			},
+			
                         ...alertOperations,
                         ...alertFields,
                         ...deviceOperations,
