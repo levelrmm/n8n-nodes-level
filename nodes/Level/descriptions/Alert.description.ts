@@ -113,7 +113,7 @@ export const alertFields: INodeProperties[] = [
                 displayName: 'Status',
                 name: 'alertStatus',
                 type: 'options',
-                default: '',
+                default: 'active',
                 description: 'Filter to only include alerts with the given status',
                 displayOptions: {
                         show: {
