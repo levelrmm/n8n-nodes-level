@@ -94,7 +94,8 @@ export const groupFields: INodeProperties[] = [
                 name: 'groupParentId',
                 type: 'string',
                 default: '',
-                description: 'Filter by parent group ID (<code>parent_id</code>)',
+                description:
+                        "Filter to only include groups with the given parent ID. If not provided, all groups are returned. If 'null' is provided, only root groups are returned",
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -114,7 +115,8 @@ export const groupFields: INodeProperties[] = [
                 name: 'groupStartingAfter',
                 type: 'string',
                 default: '',
-                description: 'Cursor for pagination (<code>starting_after</code>)',
+                description:
+                        "A cursor for use in pagination. <code>starting_after</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with ID '1234', your subsequent call can include 'starting_after=1234' in order to fetch the next page of the list",
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -134,7 +136,8 @@ export const groupFields: INodeProperties[] = [
                 name: 'groupEndingBefore',
                 type: 'string',
                 default: '',
-                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
+                description:
+                        "A cursor for use in pagination. <code>ending_before</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with ID '1234', your subsequent call can include 'ending_before=1234' in order to fetch the previous page of the list",
                 displayOptions: {
                         show: {
                                 resource: ['group'],
