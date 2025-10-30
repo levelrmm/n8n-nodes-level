@@ -16,7 +16,7 @@ import { automationFields, automationOperations } from './descriptions/Automatio
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
 import { groupFields, groupOperations } from './descriptions/Group.description';
 
-const DEVICE_URL_REGEX = /\/devices\/([^/?#]+)/i;
+const DEVICE_URL_REGEX = /\/devices?\/([^?#]+)/i;
 
 function parseDeviceIdFromUrl(raw: string): string {
         const trimmed = raw.trim();
@@ -29,12 +29,24 @@ function parseDeviceIdFromUrl(raw: string): string {
                 return trimmed;
         }
 
-        const segment = match[1];
+        const segment = match[1].replace(/\/+$/, '');
 
         try {
                 return decodeURIComponent(segment);
         } catch {
                 return segment;
+        }
+}
+
+function encodeDeviceIdForPath(deviceId: string): string {
+        if (!deviceId) {
+                return deviceId;
+        }
+
+        try {
+                return encodeURIComponent(decodeURIComponent(deviceId));
+        } catch {
+                return encodeURIComponent(deviceId);
         }
 }
 
@@ -467,10 +479,12 @@ export class Level implements INodeType {
 
                                                 appendExtraQuery(query, extraQuery);
 
+                                                const pathDeviceId = encodeDeviceIdForPath(deviceId);
+
                                                 response = await levelApiRequest.call(
                                                         this,
                                                         'GET',
-                                                        `/devices/${deviceId}`,
+                                                        `/devices/${pathDeviceId}`,
                                                         {},
                                                         query,
                                                 );
