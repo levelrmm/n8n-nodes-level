@@ -42,16 +42,6 @@ export class LevelApi implements ICredentialType {
                         description: 'API key generated from the Level dashboard',
                 },
                 {
-                        displayName: 'Webhook Secret',
-                        name: 'webhookSecret',
-                        type: 'string',
-                        typeOptions: {
-                                password: true,
-                        },
-                        default: '',
-                        description: 'Shared secret to verify Level webhook signatures',
-                },
-                {
                         displayName: 'Base URL',
                         name: 'baseUrl',
                         type: 'string',
