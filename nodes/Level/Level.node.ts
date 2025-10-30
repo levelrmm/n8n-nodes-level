@@ -8,9 +8,10 @@ import type {
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { levelApiRequest } from './GenericFunctions';
-import { alertFields,  alertOperations  } from './descriptions/Alert.description';
+import { alertFields, alertOperations } from './descriptions/Alert.description';
+import { automationFields, automationOperations } from './descriptions/Automation.description';
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
-import { groupFields,  groupOperations  } from './descriptions/Group.description';
+import { groupFields, groupOperations } from './descriptions/Group.description';
 
 export class Level implements INodeType {
 	description: INodeTypeDescription = {
@@ -31,24 +32,26 @@ export class Level implements INodeType {
 				name: 'resource',
 				type: 'options',
 				noDataExpression: true,
-				options: [
-					{ name: 'Alert', value: 'alert' },
-					{ name: 'Device', value: 'device' },
-					{ name: 'Group', value: 'group' },
-				],
-				default: 'device',
-								},
-							   // Alerts
-							   ...alertOperations,
-							   ...alertFields,
-							
-							    // Devices
-							    ...deviceOperations,
-							    ...deviceFields,
-							
-							   // Groups
-							   ...groupOperations,
-							   ...groupFields,
+                                options: [
+                                        { name: 'Alert', value: 'alert' },
+                                        { name: 'Automation', value: 'automation' },
+                                        { name: 'Device', value: 'device' },
+                                        { name: 'Group', value: 'group' },
+                                ],
+                                default: 'device',
+                        },
+                        // Alerts
+                        ...alertOperations,
+                        ...alertFields,
+                        // Automations
+                        ...automationOperations,
+                        ...automationFields,
+                        // Devices
+                        ...deviceOperations,
+                        ...deviceFields,
+                        // Groups
+                        ...groupOperations,
+                        ...groupFields,
 			{
 				displayName: 'Response Property Name',
 				name: 'responsePropertyName',
@@ -152,6 +155,8 @@ export class Level implements INodeType {
                                                 const additionalFields = this.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
 
                                                 const query: IDataObject = {};
+                                                if (additionalFields.deviceId) query['device_id'] = additionalFields.deviceId as string;
+                                                if (additionalFields.status) query['status'] = additionalFields.status as string;
                                                 if (additionalFields.startingAfter) query['starting_after'] = additionalFields.startingAfter as string;
                                                 if (additionalFields.endingBefore) query['ending_before'] = additionalFields.endingBefore as string;
                                                 appendExtraQuery(query, additionalFields);
@@ -172,10 +177,83 @@ export class Level implements INodeType {
                                         }
                                 }
 
+                        // -------- Automation --------
+                                else if (resource === 'automation') {
+                                        if (operation === 'triggerWebhook') {
+                                                const token = this.getNodeParameter('token', itemIndex) as string;
+                                                const jsonParameters = this.getNodeParameter('jsonParameters', itemIndex) as boolean;
+
+                                                let body: IDataObject = {};
+
+                                                if (jsonParameters) {
+                                                        const rawPayload = this.getNodeParameter('jsonPayload', itemIndex) as string | IDataObject;
+                                                        if (typeof rawPayload === 'string') {
+                                                                let parsed: unknown;
+                                                                try {
+                                                                        parsed = JSON.parse(rawPayload) as unknown;
+                                                                } catch {
+                                                                        throw new NodeOperationError(this.getNode(), 'Invalid JSON payload.', {
+                                                                                itemIndex,
+                                                                        });
+                                                                }
+
+                                                                if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+                                                                        throw new NodeOperationError(this.getNode(), 'JSON payload must resolve to an object.', {
+                                                                                itemIndex,
+                                                                        });
+                                                                }
+
+                                                                body = parsed as IDataObject;
+                                                        } else if (rawPayload && typeof rawPayload === 'object' && !Array.isArray(rawPayload)) {
+                                                                body = rawPayload as IDataObject;
+                                                        } else {
+                                                                throw new NodeOperationError(this.getNode(), 'JSON payload must resolve to an object.', {
+                                                                        itemIndex,
+                                                                });
+                                                        }
+                                                } else {
+                                                        const payload = this.getNodeParameter('payload', itemIndex, {}) as IDataObject;
+                                                        const deviceIdsValue = payload.deviceIds as unknown;
+                                                        const normalizedDeviceIds: string[] = [];
+
+                                                        if (Array.isArray(deviceIdsValue)) {
+                                                                for (const entry of deviceIdsValue as Array<string | undefined>) {
+                                                                        if (typeof entry !== 'string') continue;
+                                                                        const trimmed = entry.trim();
+                                                                        if (trimmed) normalizedDeviceIds.push(trimmed);
+                                                                }
+                                                        } else if (typeof deviceIdsValue === 'string') {
+                                                                const trimmed = deviceIdsValue.trim();
+                                                                if (trimmed) normalizedDeviceIds.push(trimmed);
+                                                        }
+
+                                                        if (normalizedDeviceIds.length) {
+                                                                body.device_ids = normalizedDeviceIds;
+                                                        }
+
+                                                        const customParameters = (payload.customParameters as IDataObject | undefined)?.parameter;
+                                                        if (Array.isArray(customParameters)) {
+                                                                for (const pair of customParameters as Array<{ key?: string; value?: string }>) {
+                                                                        if (!pair?.key) continue;
+                                                                        const key = pair.key.trim();
+                                                                        if (!key || key === 'device_ids') continue;
+                                                                        body[key] = pair.value ?? '';
+                                                                }
+                                                        }
+                                                }
+
+                                                response = await levelApiRequest.call(this, 'POST', `/automations/webhooks/${token}`, body, {});
+                                        } else {
+                                                throw new NodeOperationError(this.getNode(), `Unsupported automation operation: ${operation}`, {
+                                                        itemIndex,
+                                                });
+                                        }
+                                }
+
                         // -------- Device --------
-				else if (resource === 'device') {
-					if (operation === 'list') {
-						const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
+                                else if (resource === 'device') {
+                                        if (operation === 'list') {
+                                                const returnAll = this.getNodeParameter('returnAll', itemIndex) as boolean;
                                             const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
 				
                                                 const additionalFields = this.getNodeParameter('listAdditionalFields', itemIndex, {}) as IDataObject;

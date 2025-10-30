@@ -104,34 +104,6 @@ export const alertFields: INodeProperties[] = [
                 },
                 options: [
                         {
-                                displayName: 'Starting After',
-                                name: 'startingAfter',
-                                type: 'string',
-                                default: '',
-                                description: 'Cursor for pagination (<code>starting_after</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        starting_after: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Ending Before',
-                                name: 'endingBefore',
-                                type: 'string',
-                                default: '',
-                                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        ending_before: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
                                 displayName: 'Additional Query Parameters',
                                 name: 'extraQuery',
                                 type: 'fixedCollection',
@@ -152,6 +124,67 @@ export const alertFields: INodeProperties[] = [
                                 routing: {
                                         request: {
                                                 qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
+                                        },
+                                },
+                        },
+                        {
+                                displayName: 'Device ID',
+                                name: 'deviceId',
+                                type: 'string',
+                                default: '',
+                                description: 'Filter alerts by device (<code>device_id</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        device_id: '={{$value}}',
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                displayName: 'Ending Before',
+                                name: 'endingBefore',
+                                type: 'string',
+                                default: '',
+                                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        ending_before: '={{$value}}',
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                displayName: 'Starting After',
+                                name: 'startingAfter',
+                                type: 'string',
+                                default: '',
+                                description: 'Cursor for pagination (<code>starting_after</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        starting_after: '={{$value}}',
+                                                },
+                                        },
+                                },
+                        },
+                        {
+                                displayName: 'Status',
+                                name: 'status',
+                                type: 'options',
+                                default: '',
+                                description: 'Filter alerts by current status (<code>status</code>)',
+                                options: [
+                                        { name: 'All Statuses', value: '' },
+                                        { name: 'Active', value: 'active' },
+                                        { name: 'Resolved', value: 'resolved' },
+                                ],
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        status: '={{$value || undefined}}',
+                                                },
                                         },
                                 },
                         },

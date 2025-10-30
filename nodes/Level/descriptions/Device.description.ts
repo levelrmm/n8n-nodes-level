@@ -302,6 +302,13 @@ export const deviceFields: INodeProperties[] = [
                                 type: 'boolean',
                                 default: false,
                                 description: 'Whether to include detailed disk information in the response (<code>include_disks</code>)',
+                                routing: {
+                                        request: {
+                                                qs: {
+                                                        include_disks: '={{$value ? true : undefined}}',
+                                                },
+                                        },
+                                },
                         },
                         {
                                 displayName: 'Include Memory',
