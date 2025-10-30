@@ -75,54 +75,66 @@ export class Level implements INodeType {
                 loadOptions: {
                         async searchDevicesByHostname(this: ILoadOptionsFunctions, query?: string) {
                                 const q = (query ?? '').toLowerCase().trim();
-                                const options: INodePropertyOptions[] = [];
                                 if (!q) {
-                                        return options;
+                                        return [];
                                 }
-                                let starting_after: string | undefined;
+
+                                const options: INodePropertyOptions[] = [];
+                                let startingAfter: string | undefined;
 
                                 for (let page = 0; page < 5; page++) {
                                         const qs: IDataObject = { limit: 100 };
-                                        if (starting_after) {
-                                                qs.starting_after = starting_after;
+                                        if (startingAfter) {
+                                                qs.starting_after = startingAfter;
                                         }
 
                                         const response = await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
-                                        const items = (response?.data ?? response ?? []) as Array<Record<string, unknown>>;
 
-                                        if (!Array.isArray(items) || items.length === 0) {
+                                        let items: Array<Record<string, unknown>> = [];
+                                        if (Array.isArray(response)) {
+                                                items = response as Array<Record<string, unknown>>;
+                                        } else if (response && typeof response === 'object') {
+                                                const container = response as IDataObject;
+                                                const data = container.data;
+                                                if (Array.isArray(data)) {
+                                                        items = data as Array<Record<string, unknown>>;
+                                                } else if (Array.isArray(container.devices)) {
+                                                        items = container.devices as Array<Record<string, unknown>>;
+                                                }
+                                        }
+
+                                        if (!items.length) {
                                                 break;
                                         }
 
                                         for (const device of items) {
-                                                if (!device?.id) {
+                                                const id = device?.id;
+                                                if (typeof id !== 'string' && typeof id !== 'number') {
                                                         continue;
                                                 }
+
                                                 const hostname = String(device?.hostname ?? '').toLowerCase();
-                                                if (!q || hostname.includes(q)) {
+                                                if (hostname.includes(q)) {
+                                                        const name = `${(device?.hostname as string | undefined) || (device?.nickname as string | undefined) || String(id)}${
+                                                                device?.group_name ? ` — ${device.group_name as string}` : ''
+                                                        }`;
+
                                                         options.push({
-                                                                name: `${device?.hostname || device?.nickname || device?.id}${
-                                                                        device?.group_name
-                                                                                ? ` — ${device.group_name}`
-                                                                                : ''
-                                                                }`,
-                                                                value: device?.id,
+                                                                name,
+                                                                value: String(id),
                                                         });
                                                 }
                                         }
 
-                                        starting_after = String(items[items.length - 1]?.id ?? '');
-                                        if (!starting_after) {
+                                        const lastId = items[items.length - 1]?.id;
+                                        startingAfter =
+                                                typeof lastId === 'string' || typeof lastId === 'number'
+                                                        ? String(lastId)
+                                                        : undefined;
+
+                                        if (!startingAfter || options.length >= 50) {
                                                 break;
                                         }
-
-                                        if (options.length >= 50) {
-                                                break;
-                                        }
-                                }
-
-                                if (!options.length) {
-                                        return [{ name: 'No Matches', value: '' }];
                                 }
 
                                 return options.slice(0, 50);
