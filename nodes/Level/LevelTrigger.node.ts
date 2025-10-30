@@ -42,7 +42,7 @@ export class LevelTrigger implements INodeType {
                 group: ['trigger'],
                 version: 1,
                 description:
-                        'Handle incoming webhooks from Level to react to alerts, devices, groups, and automation events. Configure the webhook URL in Level under Settings → Webhooks and reuse the same secret in the Level API credential for signature verification.',
+                        'Handle incoming webhooks from Level to react to alerts, devices, groups, and automation events. Configure the webhook URL in Level under Settings → Webhooks and store the signing secret in the Level Webhook Secret credential for signature verification.',
                 defaults: {
                         name: 'Level Trigger',
                 },
@@ -51,8 +51,10 @@ export class LevelTrigger implements INodeType {
                 usableAsTool: true,
                 credentials: [
                         {
-                                name: 'levelApi',
+                                // eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
+                                name: 'levelWebhookSecret',
                                 required: true,
+                                displayName: 'Level Webhook Secret',
                         },
                 ],
                 webhooks: [
@@ -97,8 +99,9 @@ export class LevelTrigger implements INodeType {
                 const rawBody = req.rawBody ? req.rawBody.toString() : JSON.stringify(bodyData ?? {});
                 const signatureHeader = req.headers['x-level-signature'];
 
-                const credentials = await this.getCredentials('levelApi');
-                const webhookSecret = (credentials.webhookSecret as string | undefined) || undefined;
+                const { webhookSecret = '' } = (await this.getCredentials('levelWebhookSecret')) as {
+                        webhookSecret?: string;
+                };
 
                 if (webhookSecret) {
                         if (typeof signatureHeader !== 'string' || !signatureHeader.startsWith('sha256=')) {
