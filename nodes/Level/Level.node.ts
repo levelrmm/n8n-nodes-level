@@ -117,9 +117,9 @@ export class Level implements INodeType {
                                 const options: INodePropertyOptions[] = [];
                                 let currentToken = paginationToken ? String(paginationToken) : undefined;
                                 let nextToken: string | undefined;
-                                let hasMore = false;
+                                let hasMore = true;
 
-                                for (let page = 0; page < 5; page++) {
+                                while (options.length < 50 && hasMore) {
                                         const qs: IDataObject = { limit: 100 };
                                         if (currentToken) {
                                                 qs.starting_after = currentToken;
@@ -170,13 +170,10 @@ export class Level implements INodeType {
                                                 typeof lastId === 'string' || typeof lastId === 'number'
                                                         ? String(lastId)
                                                         : undefined;
-                                        hasMore = nextToken !== undefined;
-
-                                        if (!hasMore || options.length >= 50) {
-                                                break;
-                                        }
+                                        const receivedFullPage = items.length === 100 && nextToken !== undefined;
 
                                         currentToken = nextToken;
+                                        hasMore = receivedFullPage;
                                 }
 
                                 const results = options.slice(0, 50);
