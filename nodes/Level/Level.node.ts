@@ -402,7 +402,7 @@ export class Level implements INodeType {
                                         }
 
                                         else if (operation === 'get') {
-                                                const id = parseDeviceIdFromUrl(
+                                                const deviceId = parseDeviceIdFromUrl(
                                                         this.getNodeParameter('id', itemIndex) as string,
                                                 );
                                                 const query: IDataObject = {};
