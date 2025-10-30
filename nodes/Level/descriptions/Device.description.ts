@@ -39,7 +39,7 @@ export const deviceFields: INodeProperties[] = [
                 displayName: 'Device',
                 name: 'device',
                 type: 'resourceLocator',
-                default: { mode: 'list', value: '' },
+                default: { mode: 'id', value: '' },
                 description: 'Select or enter the device to retrieve',
                 required: true,
                 displayOptions: {
