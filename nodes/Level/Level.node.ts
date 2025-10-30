@@ -434,7 +434,9 @@ export class Level implements INodeType {
                                                 ) as IDataObject;
 
                                                 const deviceId = parseDeviceIdFromUrl(
-                                                        this.getNodeParameter('id', itemIndex) as string,
+                                                        this.getNodeParameter('device', itemIndex, '', {
+                                                                extractValue: true,
+                                                        }) as string,
                                                 );
                                                 const query: IDataObject = {};
 
