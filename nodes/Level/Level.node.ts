@@ -3,6 +3,7 @@ import type {
         IExecuteFunctions,
         ILoadOptionsFunctions,
         INodeExecutionData,
+        INodeListSearchResult,
         INodePropertyOptions,
         INodeType,
         INodeTypeDescription,
@@ -89,20 +90,27 @@ export class Level implements INodeType {
         };
 
         methods = {
-                loadOptions: {
-                        async searchDevicesByHostname(this: ILoadOptionsFunctions, query?: string) {
-                                const q = (query ?? '').toLowerCase().trim();
+                loadOptions: {},
+                listSearch: {
+                        async searchDevicesByHostname(
+                                this: ILoadOptionsFunctions,
+                                filter?: string,
+                                paginationToken?: string,
+                        ): Promise<INodeListSearchResult> {
+                                const q = (filter ?? '').toLowerCase().trim();
                                 if (!q) {
-                                        return [];
+                                        return { results: [] };
                                 }
 
                                 const options: INodePropertyOptions[] = [];
-                                let startingAfter: string | undefined;
+                                let currentToken = paginationToken ? String(paginationToken) : undefined;
+                                let nextToken: string | undefined;
+                                let hasMore = false;
 
                                 for (let page = 0; page < 5; page++) {
                                         const qs: IDataObject = { limit: 100 };
-                                        if (startingAfter) {
-                                                qs.starting_after = startingAfter;
+                                        if (currentToken) {
+                                                qs.starting_after = currentToken;
                                         }
 
                                         const response = await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
@@ -121,6 +129,8 @@ export class Level implements INodeType {
                                         }
 
                                         if (!items.length) {
+                                                nextToken = undefined;
+                                                hasMore = false;
                                                 break;
                                         }
 
@@ -144,17 +154,26 @@ export class Level implements INodeType {
                                         }
 
                                         const lastId = items[items.length - 1]?.id;
-                                        startingAfter =
+                                        nextToken =
                                                 typeof lastId === 'string' || typeof lastId === 'number'
                                                         ? String(lastId)
                                                         : undefined;
+                                        hasMore = nextToken !== undefined;
 
-                                        if (!startingAfter || options.length >= 50) {
+                                        if (!hasMore || options.length >= 50) {
                                                 break;
                                         }
+
+                                        currentToken = nextToken;
                                 }
 
-                                return options.slice(0, 50);
+                                const results = options.slice(0, 50);
+                                const result: INodeListSearchResult = { results };
+                                if (hasMore && nextToken) {
+                                        result.paginationToken = nextToken;
+                                }
+
+                                return result;
                         },
                 },
         };
