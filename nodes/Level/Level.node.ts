@@ -15,17 +15,25 @@ import { automationFields, automationOperations } from './descriptions/Automatio
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
 import { groupFields, groupOperations } from './descriptions/Group.description';
 
-function parseDeviceIdFromUrl(url: string): string | undefined {
-        const match = url?.match(/\/devices\/([A-Za-z0-9=%_-]+)\/?/);
-        const rawId = match?.[1];
-        if (!rawId) {
-                return undefined;
+const DEVICE_URL_REGEX = /\/devices\/([^/?#]+)/i;
+
+function parseDeviceIdFromUrl(raw: string): string {
+        const trimmed = raw.trim();
+        if (!trimmed) {
+                return '';
         }
 
+        const match = trimmed.match(DEVICE_URL_REGEX);
+        if (!match) {
+                return trimmed;
+        }
+
+        const segment = match[1];
+
         try {
-                return decodeURIComponent(rawId);
+                return decodeURIComponent(segment);
         } catch {
-                return rawId;
+                return segment;
         }
 }
 
@@ -248,7 +256,9 @@ export class Level implements INodeType {
                                                 const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
                                                 const query: IDataObject = {};
 
-                                                const deviceId = this.getNodeParameter('alertDeviceId', itemIndex, '') as string;
+                                                const deviceId = parseDeviceIdFromUrl(
+                                                        this.getNodeParameter('alertDeviceId', itemIndex, '') as string,
+                                                );
                                                 const status = this.getNodeParameter('alertStatus', itemIndex, '') as string;
                                                 const startingAfter = this.getNodeParameter('alertStartingAfter', itemIndex, '') as string;
                                                 const endingBefore = this.getNodeParameter('alertEndingBefore', itemIndex, '') as string;
@@ -317,12 +327,12 @@ export class Level implements INodeType {
                                                         if (Array.isArray(deviceIdsValue)) {
                                                                 for (const entry of deviceIdsValue as Array<string | undefined>) {
                                                                         if (typeof entry !== 'string') continue;
-                                                                        const trimmed = entry.trim();
-                                                                        if (trimmed) normalizedDeviceIds.push(trimmed);
+                                                                        const parsedId = parseDeviceIdFromUrl(entry);
+                                                                        if (parsedId) normalizedDeviceIds.push(parsedId);
                                                                 }
                                                         } else if (typeof deviceIdsValue === 'string') {
-                                                                const trimmed = deviceIdsValue.trim();
-                                                                if (trimmed) normalizedDeviceIds.push(trimmed);
+                                                                const parsedId = parseDeviceIdFromUrl(deviceIdsValue);
+                                                                if (parsedId) normalizedDeviceIds.push(parsedId);
                                                         }
 
                                                         if (normalizedDeviceIds.length) {
@@ -392,56 +402,9 @@ export class Level implements INodeType {
                                         }
 
                                         else if (operation === 'get') {
-                                                const deviceParam = this.getNodeParameter('device', itemIndex) as {
-                                                        mode?: string;
-                                                        value?: string;
-                                                };
-
-                                                let deviceId: string | undefined;
-
-                                                if (deviceParam?.mode === 'id') {
-                                                        deviceId = deviceParam.value;
-                                                } else if (deviceParam?.mode === 'url') {
-                                                        deviceId = parseDeviceIdFromUrl(deviceParam.value ?? '');
-                                                } else if (deviceParam?.mode === 'list') {
-                                                        deviceId = deviceParam.value;
-                                                }
-
-                                                if (!deviceId) {
-                                                        throw new NodeOperationError(
-                                                                this.getNode(),
-                                                                'Could not resolve device ID from the Device field.',
-                                                                { itemIndex },
-                                                        );
-                                                }
-
-                                                const includeOperatingSystem = this.getNodeParameter(
-                                                        'deviceIncludeOperatingSystem',
-                                                        itemIndex,
-                                                        false,
-                                                ) as boolean;
-                                                const includeCpus = this.getNodeParameter(
-                                                        'deviceIncludeCpus',
-                                                        itemIndex,
-                                                        false,
-                                                ) as boolean;
-                                                const includeMemory = this.getNodeParameter(
-                                                        'deviceIncludeMemory',
-                                                        itemIndex,
-                                                        false,
-                                                ) as boolean;
-                                                const includeDisks = this.getNodeParameter(
-                                                        'deviceIncludeDisks',
-                                                        itemIndex,
-                                                        false,
-                                                ) as boolean;
-                                                const includeNetworkInterfaces = this.getNodeParameter(
-                                                        'deviceIncludeNetworkInterfaces',
-                                                        itemIndex,
-                                                        false,
-                                                ) as boolean;
-                                                const extraQuery = this.getNodeParameter('deviceExtraQuery', itemIndex, {}) as IDataObject;
-
+                                                const id = parseDeviceIdFromUrl(
+                                                        this.getNodeParameter('id', itemIndex) as string,
+                                                );
                                                 const query: IDataObject = {};
 
                                                 if (includeOperatingSystem) query['include_operating_system'] = true;
