@@ -53,7 +53,7 @@ export class LevelTrigger implements INodeType {
                         {
                                 // eslint-disable-next-line n8n-nodes-base/node-class-description-credentials-name-unsuffixed
                                 name: 'levelWebhookSecret',
-                                required: false,
+                                required: true,
                                 displayName: 'Level Webhook Secret',
                         },
                 ],
@@ -99,17 +99,9 @@ export class LevelTrigger implements INodeType {
                 const rawBody = req.rawBody ? req.rawBody.toString() : JSON.stringify(bodyData ?? {});
                 const signatureHeader = req.headers['x-level-signature'];
 
-                let webhookSecret = '';
-
-                try {
-                        const credentials = (await this.getCredentials('levelWebhookSecret')) as {
-                                webhookSecret?: string;
-                        };
-
-                        webhookSecret = credentials?.webhookSecret ?? '';
-                } catch {
-                        // Credential is optional; ignore missing credentials.
-                }
+                const { webhookSecret = '' } = (await this.getCredentials('levelWebhookSecret')) as {
+                        webhookSecret?: string;
+                };
 
                 if (webhookSecret) {
                         if (typeof signatureHeader !== 'string' || !signatureHeader.startsWith('sha256=')) {

@@ -28,7 +28,7 @@ The trigger node listens for signed webhook events from Level and emits them int
 Create the following credentials in n8n:
 
 - **Level API** – Generate an API key from the Level dashboard (**Settings → API Keys**) and store it in this credential. Assign it to the Level node (and to the trigger if you enrich incoming events with REST calls).
-- **Level Webhook Secret** – Copy the signing secret from **Settings → Webhooks** in Level and store it in this credential. Assign it to the Level Trigger node when you want to verify incoming webhook signatures.
+- **Level Webhook Secret** – Copy the signing secret from **Settings → Webhooks** in Level and store it in this credential. Assign it to the Level Trigger node to verify incoming webhook signatures.
 
 ## Compatibility
 
