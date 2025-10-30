@@ -69,12 +69,32 @@ export const automationFields: INodeProperties[] = [
                 },
         },
         {
-                displayName: 'Payload',
-                name: 'payload',
-                type: 'collection',
-                placeholder: 'Add Field',
+                displayName: 'Device IDs',
+                name: 'automationDeviceIds',
+                type: 'string',
+                typeOptions: {
+                        multipleValues: true,
+                },
+                default: [],
+                description: 'Trigger the automation for specific devices (<code>device_ids</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['automation'],
+                                operation: ['triggerWebhook'],
+                                jsonParameters: [false],
+                        },
+                },
+        },
+        {
+                displayName: 'Custom Parameters',
+                name: 'automationCustomParameters',
+                type: 'fixedCollection',
+                placeholder: 'Add Parameter',
+                typeOptions: {
+                        multipleValues: true,
+                },
                 default: {},
-                description: 'Parameters to include in the webhook payload',
+                description: 'Additional key-value pairs to map to variables configured on the webhook trigger',
                 displayOptions: {
                         show: {
                                 resource: ['automation'],
@@ -84,35 +104,12 @@ export const automationFields: INodeProperties[] = [
                 },
                 options: [
                         {
-                                displayName: 'Device IDs',
-                                name: 'deviceIds',
-                                type: 'string',
-                                typeOptions: {
-                                        multipleValues: true,
-                                },
-                                default: [],
-                                description: 'Trigger the automation for specific devices (<code>device_ids</code>)',
-                        },
-                        {
-                                displayName: 'Custom Parameters',
-                                name: 'customParameters',
-                                type: 'fixedCollection',
-                                placeholder: 'Add Parameter',
-                                typeOptions: {
-                                        multipleValues: true,
-                                },
-                                default: {},
-                                options: [
-                                        {
-                                                displayName: 'Parameter',
-                                                name: 'parameter',
-                                                values: [
-                                                        { displayName: 'Key', name: 'key', type: 'string', default: '' },
-                                                        { displayName: 'Value', name: 'value', type: 'string', default: '' },
-                                                ],
-                                        },
+                                displayName: 'Parameter',
+                                name: 'parameter',
+                                values: [
+                                        { displayName: 'Key', name: 'key', type: 'string', default: '' },
+                                        { displayName: 'Value', name: 'value', type: 'string', default: '' },
                                 ],
-                                description: 'Additional key-value pairs to map to variables configured on the webhook trigger',
                         },
                 ],
         },

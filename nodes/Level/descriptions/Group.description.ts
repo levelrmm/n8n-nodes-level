@@ -90,12 +90,73 @@ export const groupFields: INodeProperties[] = [
                 },
         },
         {
-                displayName: 'Additional Fields',
-                name: 'additionalFields',
-                type: 'collection',
-                placeholder: 'Add Field',
+                displayName: 'Parent Group ID',
+                name: 'groupParentId',
+                type: 'string',
+                default: '',
+                description: 'Filter by parent group ID (<code>parent_id</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['group'],
+                                operation: ['list'],
+                        },
+                },
+                routing: {
+                        request: {
+                                qs: {
+                                        parent_id: '={{$value}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Starting After',
+                name: 'groupStartingAfter',
+                type: 'string',
+                default: '',
+                description: 'Cursor for pagination (<code>starting_after</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['group'],
+                                operation: ['list'],
+                        },
+                },
+                routing: {
+                        request: {
+                                qs: {
+                                        starting_after: '={{$value}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Ending Before',
+                name: 'groupEndingBefore',
+                type: 'string',
+                default: '',
+                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['group'],
+                                operation: ['list'],
+                        },
+                },
+                routing: {
+                        request: {
+                                qs: {
+                                        ending_before: '={{$value}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Additional Query Parameters',
+                name: 'groupExtraQuery',
+                type: 'fixedCollection',
+                placeholder: 'Add Parameter',
+                typeOptions: { multipleValues: true },
                 default: {},
-                description: 'Optional query parameters',
+                description: 'Additional query string parameters supported by the API',
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -104,71 +165,18 @@ export const groupFields: INodeProperties[] = [
                 },
                 options: [
                         {
-                                displayName: 'Parent Group ID',
-                                name: 'parentId',
-                                type: 'string',
-                                default: '',
-                                description: 'Filter by parent group ID (<code>parent_id</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        parent_id: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Starting After',
-                                name: 'startingAfter',
-                                type: 'string',
-                                default: '',
-                                description: 'Cursor for pagination (<code>starting_after</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        starting_after: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Ending Before',
-                                name: 'endingBefore',
-                                type: 'string',
-                                default: '',
-                                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        ending_before: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Additional Query Parameters',
-                                name: 'extraQuery',
-                                type: 'fixedCollection',
-                                placeholder: 'Add Parameter',
-                                typeOptions: { multipleValues: true },
-                                default: {},
-                                options: [
-                                        {
-                                                displayName: 'Parameter',
-                                                name: 'parameter',
-                                                values: [
-                                                        { displayName: 'Key', name: 'key', type: 'string', default: '' },
-                                                        { displayName: 'Value', name: 'value', type: 'string', default: '' },
-                                                ],
-                                        },
+                                displayName: 'Parameter',
+                                name: 'parameter',
+                                values: [
+                                        { displayName: 'Key', name: 'key', type: 'string', default: '' },
+                                        { displayName: 'Value', name: 'value', type: 'string', default: '' },
                                 ],
-                                description: 'Additional query string parameters supported by the API',
-                                routing: {
-                                        request: {
-                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
-                                        },
-                                },
                         },
                 ],
+                routing: {
+                        request: {
+                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
+                        },
+                },
         },
 ];

@@ -90,12 +90,98 @@ export const alertFields: INodeProperties[] = [
                 },
         },
         {
-                displayName: 'Additional Fields',
-                name: 'additionalFields',
-                type: 'collection',
-                placeholder: 'Add Field',
+                displayName: 'Device ID',
+                name: 'alertDeviceId',
+                type: 'string',
+                default: '',
+                description: 'Filter alerts by device (<code>device_id</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['alert'],
+                                operation: ['list'],
+                        },
+                },
+                routing: {
+                        request: {
+                                qs: {
+                                        device_id: '={{$value}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Status',
+                name: 'alertStatus',
+                type: 'options',
+                default: '',
+                description: 'Filter alerts by current status (<code>status</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['alert'],
+                                operation: ['list'],
+                        },
+                },
+                options: [
+                        { name: 'All Statuses', value: '' },
+                        { name: 'Active', value: 'active' },
+                        { name: 'Resolved', value: 'resolved' },
+                ],
+                routing: {
+                        request: {
+                                qs: {
+                                        status: '={{$value || undefined}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Starting After',
+                name: 'alertStartingAfter',
+                type: 'string',
+                default: '',
+                description: 'Cursor for pagination (<code>starting_after</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['alert'],
+                                operation: ['list'],
+                        },
+                },
+                routing: {
+                        request: {
+                                qs: {
+                                        starting_after: '={{$value}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Ending Before',
+                name: 'alertEndingBefore',
+                type: 'string',
+                default: '',
+                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
+                displayOptions: {
+                        show: {
+                                resource: ['alert'],
+                                operation: ['list'],
+                        },
+                },
+                routing: {
+                        request: {
+                                qs: {
+                                        ending_before: '={{$value}}',
+                                },
+                        },
+                },
+        },
+        {
+                displayName: 'Additional Query Parameters',
+                name: 'alertExtraQuery',
+                type: 'fixedCollection',
+                placeholder: 'Add Parameter',
+                typeOptions: { multipleValues: true },
                 default: {},
-                description: 'Optional query parameters',
+                description: 'Additional query string parameters supported by the API',
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -104,90 +190,18 @@ export const alertFields: INodeProperties[] = [
                 },
                 options: [
                         {
-                                displayName: 'Additional Query Parameters',
-                                name: 'extraQuery',
-                                type: 'fixedCollection',
-                                placeholder: 'Add Parameter',
-                                typeOptions: { multipleValues: true },
-                                default: {},
-                                options: [
-                                        {
-                                                displayName: 'Parameter',
-                                                name: 'parameter',
-                                                values: [
-                                                        { displayName: 'Key', name: 'key', type: 'string', default: '' },
-                                                        { displayName: 'Value', name: 'value', type: 'string', default: '' },
-                                                ],
-                                        },
+                                displayName: 'Parameter',
+                                name: 'parameter',
+                                values: [
+                                        { displayName: 'Key', name: 'key', type: 'string', default: '' },
+                                        { displayName: 'Value', name: 'value', type: 'string', default: '' },
                                 ],
-                                description: 'Additional query string parameters supported by the API',
-                                routing: {
-                                        request: {
-                                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Device ID',
-                                name: 'deviceId',
-                                type: 'string',
-                                default: '',
-                                description: 'Filter alerts by device (<code>device_id</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        device_id: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Ending Before',
-                                name: 'endingBefore',
-                                type: 'string',
-                                default: '',
-                                description: 'Cursor for reverse pagination (<code>ending_before</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        ending_before: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Starting After',
-                                name: 'startingAfter',
-                                type: 'string',
-                                default: '',
-                                description: 'Cursor for pagination (<code>starting_after</code>)',
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        starting_after: '={{$value}}',
-                                                },
-                                        },
-                                },
-                        },
-                        {
-                                displayName: 'Status',
-                                name: 'status',
-                                type: 'options',
-                                default: '',
-                                description: 'Filter alerts by current status (<code>status</code>)',
-                                options: [
-                                        { name: 'All Statuses', value: '' },
-                                        { name: 'Active', value: 'active' },
-                                        { name: 'Resolved', value: 'resolved' },
-                                ],
-                                routing: {
-                                        request: {
-                                                qs: {
-                                                        status: '={{$value || undefined}}',
-                                                },
-                                        },
-                                },
                         },
                 ],
+                routing: {
+                        request: {
+                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
+                        },
+                },
         },
 ];
