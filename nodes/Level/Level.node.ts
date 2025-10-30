@@ -402,6 +402,37 @@ export class Level implements INodeType {
                                         }
 
                                         else if (operation === 'get') {
+                                                const includeOperatingSystem = this.getNodeParameter(
+                                                        'deviceIncludeOperatingSystem',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeCpus = this.getNodeParameter(
+                                                        'deviceIncludeCpus',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeMemory = this.getNodeParameter(
+                                                        'deviceIncludeMemory',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeDisks = this.getNodeParameter(
+                                                        'deviceIncludeDisks',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeNetworkInterfaces = this.getNodeParameter(
+                                                        'deviceIncludeNetworkInterfaces',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const extraQuery = this.getNodeParameter(
+                                                        'deviceExtraQuery',
+                                                        itemIndex,
+                                                        {},
+                                                ) as IDataObject;
+
                                                 const deviceId = parseDeviceIdFromUrl(
                                                         this.getNodeParameter('id', itemIndex) as string,
                                                 );
