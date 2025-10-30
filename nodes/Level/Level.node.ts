@@ -16,12 +16,41 @@ import { automationFields, automationOperations } from './descriptions/Automatio
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
 import { groupFields, groupOperations } from './descriptions/Group.description';
 
-const DEVICE_URL_REGEX = /\/devices?\/([^?#]+)/i;
+const DEVICE_URL_REGEX = /\/devices?\/([^/?#]+)/i;
+
+function extractDeviceIdFromPath(pathname: string): string | undefined {
+        const segments = pathname
+                .split('/')
+                .map((segment) => segment.trim())
+                .filter((segment) => segment.length > 0);
+
+        for (let index = 0; index < segments.length; index++) {
+                const segment = segments[index];
+                if (segment.toLowerCase() === 'device' || segment.toLowerCase() === 'devices') {
+                        const candidate = segments[index + 1];
+                        if (candidate) {
+                                return candidate;
+                        }
+                }
+        }
+
+        return undefined;
+}
 
 function parseDeviceIdFromUrl(raw: string): string {
         const trimmed = raw.trim();
         if (!trimmed) {
                 return '';
+        }
+
+        try {
+                const url = new URL(trimmed);
+                const candidateFromPath = extractDeviceIdFromPath(url.pathname);
+                if (candidateFromPath) {
+                        return decodeURIComponent(candidateFromPath.replace(/\/+$/, ''));
+                }
+        } catch {
+                // The string might not be a full URL; fall back to regex matching below.
         }
 
         const match = trimmed.match(DEVICE_URL_REGEX);
