@@ -16,7 +16,7 @@ import { automationFields, automationOperations } from './descriptions/Automatio
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
 import { groupFields, groupOperations } from './descriptions/Group.description';
 
-const DEVICE_URL_REGEX = /\/devices?\/([^\/?#]+)/i;
+const DEVICE_URL_REGEX = /\/devices?\/([^/?#]+)/i;
 
 function extractDeviceIdFromPath(pathname: string): string | undefined {
         const segments = pathname
