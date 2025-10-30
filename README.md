@@ -1,3 +1,4 @@
+![Level Logo](LevelLogo.jpg)
 # n8n-nodes-level
 
 Official [n8n](https://n8n.io) community nodes for [Level.io](https://level.io), the RMM and automation platform for modern MSPs. These nodes let you orchestrate Level alerts, devices, groups, automations, and webhook events directly from your n8n workflows.
