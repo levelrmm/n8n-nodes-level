@@ -1,9 +1,11 @@
 import type {
-	IDataObject,
-	IExecuteFunctions,
-	INodeExecutionData,
-	INodeType,
-	INodeTypeDescription,
+        IDataObject,
+        IExecuteFunctions,
+        ILoadOptionsFunctions,
+        INodeExecutionData,
+        INodePropertyOptions,
+        INodeType,
+        INodeTypeDescription,
 } from 'n8n-workflow';
 import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
@@ -13,10 +15,15 @@ import { automationFields, automationOperations } from './descriptions/Automatio
 import { deviceFields, deviceOperations } from './descriptions/Device.description';
 import { groupFields, groupOperations } from './descriptions/Group.description';
 
+function parseDeviceIdFromUrl(url: string): string | undefined {
+        const match = url?.match(/\/devices\/([A-Za-z0-9=_-]+)\/?/);
+        return match?.[1];
+}
+
 export class Level implements INodeType {
-	description: INodeTypeDescription = {
-		displayName: 'Level',
-		name: 'level',
+        description: INodeTypeDescription = {
+                displayName: 'Level',
+                name: 'level',
 		icon: 'file:level.svg',
 		group: ['input'],
 		version: 1,
@@ -61,8 +68,67 @@ export class Level implements INodeType {
 				description:
 					'If the API response wraps the array in a property (e.g. <code>devices</code>), set that property name. If left empty, the node attempts to auto-detect and returns the raw response if needed.',
 			},
-		],
-	};
+                ],
+        };
+
+        methods = {
+                loadOptions: {
+                        async searchDevicesByHostname(this: ILoadOptionsFunctions, query?: string) {
+                                const q = (query ?? '').toLowerCase().trim();
+                                const options: INodePropertyOptions[] = [];
+                                if (!q) {
+                                        return options;
+                                }
+                                let starting_after: string | undefined;
+
+                                for (let page = 0; page < 5; page++) {
+                                        const qs: IDataObject = { limit: 100 };
+                                        if (starting_after) {
+                                                qs.starting_after = starting_after;
+                                        }
+
+                                        const response = await levelApiRequest.call(this, 'GET', '/devices', {}, qs);
+                                        const items = (response?.data ?? response ?? []) as Array<Record<string, unknown>>;
+
+                                        if (!Array.isArray(items) || items.length === 0) {
+                                                break;
+                                        }
+
+                                        for (const device of items) {
+                                                if (!device?.id) {
+                                                        continue;
+                                                }
+                                                const hostname = String(device?.hostname ?? '').toLowerCase();
+                                                if (!q || hostname.includes(q)) {
+                                                        options.push({
+                                                                name: `${device?.hostname || device?.nickname || device?.id}${
+                                                                        device?.group_name
+                                                                                ? ` — ${device.group_name}`
+                                                                                : ''
+                                                                }`,
+                                                                value: device?.id,
+                                                        });
+                                                }
+                                        }
+
+                                        starting_after = String(items[items.length - 1]?.id ?? '');
+                                        if (!starting_after) {
+                                                break;
+                                        }
+
+                                        if (options.length >= 50) {
+                                                break;
+                                        }
+                                }
+
+                                if (!options.length) {
+                                        return [{ name: 'No Matches', value: '' }];
+                                }
+
+                                return options.slice(0, 50);
+                        },
+                },
+        };
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
@@ -305,22 +371,73 @@ export class Level implements INodeType {
                                         }
 
                                         else if (operation === 'get') {
-                                                const id   = this.getNodeParameter('id', itemIndex) as string;
-                                                const query: IDataObject = {};
-						const includeOperatingSystem = this.getNodeParameter('deviceIncludeOperatingSystem', itemIndex, false) as boolean;
-						const includeCpus = this.getNodeParameter('deviceIncludeCpus', itemIndex, false) as boolean;
-						const includeMemory = this.getNodeParameter('deviceIncludeMemory', itemIndex, false) as boolean;
-						const includeDisks = this.getNodeParameter('deviceIncludeDisks', itemIndex, false) as boolean;
-						const includeNetworkInterfaces = this.getNodeParameter('deviceIncludeNetworkInterfaces', itemIndex, false) as boolean;
-						const extraQuery = this.getNodeParameter('deviceExtraQuery', itemIndex, {}) as IDataObject;
-						if (includeOperatingSystem) query['include_operating_system'] = true;
-						if (includeCpus) query['include_cpus'] = true;
-						if (includeMemory) query['include_memory'] = true;
-						if (includeDisks) query['include_disks'] = true;
-						if (includeNetworkInterfaces) query['include_network_interfaces'] = true;
-						appendExtraQuery(query, extraQuery);
+                                                const deviceParam = this.getNodeParameter('device', itemIndex) as {
+                                                        mode?: string;
+                                                        value?: string;
+                                                };
 
-                                                response = await levelApiRequest.call(this, 'GET', `/devices/${id}`, {}, query);
+                                                let deviceId: string | undefined;
+
+                                                if (deviceParam?.mode === 'id') {
+                                                        deviceId = deviceParam.value;
+                                                } else if (deviceParam?.mode === 'url') {
+                                                        deviceId = parseDeviceIdFromUrl(deviceParam.value ?? '');
+                                                } else if (deviceParam?.mode === 'list') {
+                                                        deviceId = deviceParam.value;
+                                                }
+
+                                                if (!deviceId) {
+                                                        throw new NodeOperationError(
+                                                                this.getNode(),
+                                                                'Could not resolve device ID from the Device field.',
+                                                                { itemIndex },
+                                                        );
+                                                }
+
+                                                const includeOperatingSystem = this.getNodeParameter(
+                                                        'deviceIncludeOperatingSystem',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeCpus = this.getNodeParameter(
+                                                        'deviceIncludeCpus',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeMemory = this.getNodeParameter(
+                                                        'deviceIncludeMemory',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeDisks = this.getNodeParameter(
+                                                        'deviceIncludeDisks',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const includeNetworkInterfaces = this.getNodeParameter(
+                                                        'deviceIncludeNetworkInterfaces',
+                                                        itemIndex,
+                                                        false,
+                                                ) as boolean;
+                                                const extraQuery = this.getNodeParameter('deviceExtraQuery', itemIndex, {}) as IDataObject;
+
+                                                const query: IDataObject = {};
+
+                                                if (includeOperatingSystem) query['include_operating_system'] = true;
+                                                if (includeCpus) query['include_cpus'] = true;
+                                                if (includeMemory) query['include_memory'] = true;
+                                                if (includeDisks) query['include_disks'] = true;
+                                                if (includeNetworkInterfaces) query['include_network_interfaces'] = true;
+
+                                                appendExtraQuery(query, extraQuery);
+
+                                                response = await levelApiRequest.call(
+                                                        this,
+                                                        'GET',
+                                                        `/devices/${deviceId}`,
+                                                        {},
+                                                        query,
+                                                );
                                         }
 
                                         else {
