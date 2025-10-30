@@ -46,7 +46,7 @@ export const groupFields: INodeProperties[] = [
                 type: 'string',
                 required: true,
                 default: '',
-                description: 'The ID of the group to retrieve.',
+                description: 'ID of the group to retrieve',
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -73,8 +73,7 @@ export const groupFields: INodeProperties[] = [
                 type: 'number',
                 default: 50,
                 typeOptions: { minValue: 1, maxValue: 100 },
-                description:
-                        'A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 20.',
+                description: 'Max number of results to return',
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -96,7 +95,7 @@ export const groupFields: INodeProperties[] = [
                 type: 'string',
                 default: '',
                 description:
-                        "Filter to only include groups with the given parent ID. If not provided, all groups are returned. If 'null' is provided, only root groups are returned.",
+                        "Filter to only include groups with the given parent ID. If not provided, all groups are returned. If 'null' is provided, only root groups are returned",
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -117,7 +116,7 @@ export const groupFields: INodeProperties[] = [
                 type: 'string',
                 default: '',
                 description:
-                        "A cursor for use in pagination. <code>starting_after</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with ID '1234', your subsequent call can include 'starting_after=1234' in order to fetch the next page of the list.",
+                        "A cursor for use in pagination. <code>starting_after</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with ID '1234', your subsequent call can include 'starting_after=1234' in order to fetch the next page of the list",
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -138,7 +137,7 @@ export const groupFields: INodeProperties[] = [
                 type: 'string',
                 default: '',
                 description:
-                        "A cursor for use in pagination. <code>ending_before</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with ID '1234', your subsequent call can include 'ending_before=1234' in order to fetch the previous page of the list.",
+                        "A cursor for use in pagination. <code>ending_before</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with ID '1234', your subsequent call can include 'ending_before=1234' in order to fetch the previous page of the list",
                 displayOptions: {
                         show: {
                                 resource: ['group'],
@@ -160,7 +159,7 @@ export const groupFields: INodeProperties[] = [
                 placeholder: 'Add Parameter',
                 typeOptions: { multipleValues: true },
                 default: {},
-                description: 'Additional query string parameters supported by the API.',
+                description: 'Additional query string parameters supported by the API',
                 displayOptions: {
                         show: {
                                 resource: ['group'],

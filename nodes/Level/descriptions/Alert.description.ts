@@ -46,7 +46,7 @@ export const alertFields: INodeProperties[] = [
                 type: 'string',
                 required: true,
                 default: '',
-                description: 'The ID of the alert to retrieve.',
+                description: 'ID of the alert to retrieve',
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -73,8 +73,7 @@ export const alertFields: INodeProperties[] = [
                 type: 'number',
                 default: 50,
                 typeOptions: { minValue: 1, maxValue: 100 },
-                description:
-                        'A limit on the number of objects to be returned. Limit can range between 1 and 100, and the default is 20.',
+                description: 'Max number of results to return',
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -95,7 +94,7 @@ export const alertFields: INodeProperties[] = [
                 name: 'alertDeviceId',
                 type: 'string',
                 default: '',
-                description: 'Filter to only include alerts for the specified <code>device_id</code>.',
+                description: 'Filter to only include alerts for the specified <code>device_id</code>',
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -115,7 +114,7 @@ export const alertFields: INodeProperties[] = [
                 name: 'alertStatus',
                 type: 'options',
                 default: '',
-                description: 'Filter to only include alerts with the given status.',
+                description: 'Filter to only include alerts with the given status',
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -141,7 +140,7 @@ export const alertFields: INodeProperties[] = [
                 type: 'string',
                 default: '',
                 description:
-                        "A cursor for use in pagination. <code>starting_after</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with ID '1234', your subsequent call can include 'starting_after=1234' in order to fetch the next page of the list.",
+                        "A cursor for use in pagination. <code>starting_after</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with ID '1234', your subsequent call can include 'starting_after=1234' in order to fetch the next page of the list",
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -162,7 +161,7 @@ export const alertFields: INodeProperties[] = [
                 type: 'string',
                 default: '',
                 description:
-                        "A cursor for use in pagination. <code>ending_before</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with ID '1234', your subsequent call can include 'ending_before=1234' in order to fetch the previous page of the list.",
+                        "A cursor for use in pagination. <code>ending_before</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with ID '1234', your subsequent call can include 'ending_before=1234' in order to fetch the previous page of the list",
                 displayOptions: {
                         show: {
                                 resource: ['alert'],
@@ -184,7 +183,7 @@ export const alertFields: INodeProperties[] = [
                 placeholder: 'Add Parameter',
                 typeOptions: { multipleValues: true },
                 default: {},
-                description: 'Additional query string parameters supported by the API.',
+                description: 'Additional query string parameters supported by the API',
                 displayOptions: {
                         show: {
                                 resource: ['alert'],

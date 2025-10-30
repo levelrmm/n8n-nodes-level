@@ -33,7 +33,7 @@ export const automationFields: INodeProperties[] = [
                 typeOptions: {
                         password: true,
                 },
-                description: 'The token of the webhook to trigger.',
+                description: 'Webhook token to trigger',
                 displayOptions: {
                         show: {
                                 resource: ['automation'],
@@ -76,7 +76,7 @@ export const automationFields: INodeProperties[] = [
                         multipleValues: true,
                 },
                 default: [],
-                description: 'Trigger the automation for the specified devices. Conditions on the trigger will still be applied.',
+                description: 'Trigger the automation for the specified devices while still applying trigger conditions',
                 displayOptions: {
                         show: {
                                 resource: ['automation'],
@@ -95,7 +95,7 @@ export const automationFields: INodeProperties[] = [
                 },
                 default: {},
                 description:
-                        'Additional parameters can be mapped to variables if configured on the webhook trigger.',
+                        'Additional parameters can be mapped to variables if configured on the webhook trigger',
                 displayOptions: {
                         show: {
                                 resource: ['automation'],
