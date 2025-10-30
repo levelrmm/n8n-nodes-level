@@ -27,33 +27,51 @@ export const deviceOperations: INodeProperties[] = [
                                 name: 'Get',
                                 value: 'get',
                                 action: 'Get a device',
-                                routing: {
-                                        request: {
-                                                method: 'GET',
-                                                url: '=/devices/{{$parameter["id"]}}',
-                                        },
-                                },
                         },
                 ],
-		default: 'list',
-	},
+                default: 'list',
+        },
 ];
 
 export const deviceFields: INodeProperties[] = [
         // ---------- Device -> Get ----------
         {
-                displayName: 'Device ID',
-                name: 'id',
-                type: 'string',
+                displayName: 'Device',
+                name: 'device',
+                type: 'resourceLocator',
+                default: { mode: 'list', value: '' },
+                description: 'Select or enter the device to retrieve',
                 required: true,
-                default: '',
-                description: 'ID of the device to retrieve',
                 displayOptions: {
                         show: {
                                 resource: ['device'],
                                 operation: ['get'],
                         },
                 },
+                modes: [
+                        {
+                                displayName: 'ID',
+                                name: 'id',
+                                type: 'string',
+                                placeholder: 'Z2lkOi8v...',
+                        },
+                        {
+                                displayName: 'URL',
+                                name: 'url',
+                                type: 'string',
+                                placeholder: 'https://app.level.io/devices/<ID>',
+                        },
+                        {
+                                displayName: 'List',
+                                name: 'list',
+                                type: 'list',
+                                typeOptions: {
+                                        searchListMethod: 'searchDevicesByHostname',
+                                        searchable: true,
+                                        searchFilterRequired: true,
+                                },
+                        },
+                ],
         },
         {
                 displayName: 'Include CPUs',
