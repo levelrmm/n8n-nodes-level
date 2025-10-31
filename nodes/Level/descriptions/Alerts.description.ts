@@ -1,4 +1,107 @@
-import type { IDataObject, INodeProperties } from 'n8n-workflow';
+import type {
+        IDataObject,
+        IExecuteSingleFunctions,
+        IHttpRequestOptions,
+        IN8nHttpFullResponse,
+        INodeExecutionData,
+        INodeProperties,
+} from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
+
+import {
+        asArray,
+        buildKeyValueCollection,
+        levelApiRequestAllCursor,
+        parseDeviceIdFromInput,
+        sanitizeQuery,
+} from '../helpers';
+
+const ALERTS_LIST_PER_PAGE = 100;
+
+const alertsListPreSend = async function (
+        this: IExecuteSingleFunctions,
+        requestOptions: IHttpRequestOptions,
+): Promise<IHttpRequestOptions> {
+        const returnAll = this.getNodeParameter('returnAll', false) as boolean;
+        const limit = this.getNodeParameter('limit', 50) as number;
+        const deviceId = parseDeviceIdFromInput(this.getNodeParameter('alertDeviceId', '') as unknown);
+        const status = this.getNodeParameter('alertStatus', '') as string;
+        const startingAfter = this.getNodeParameter('alertStartingAfter', '') as string;
+        const endingBefore = this.getNodeParameter('alertEndingBefore', '') as string;
+        const extraQuery = this.getNodeParameter('alertExtraQuery', {}) as IDataObject;
+
+        const qs = sanitizeQuery({
+                limit: returnAll ? ALERTS_LIST_PER_PAGE : limit,
+                device_id: deviceId || undefined,
+                status: status || undefined,
+                starting_after: startingAfter || undefined,
+                ending_before: endingBefore || undefined,
+                ...buildKeyValueCollection(extraQuery),
+        });
+
+        requestOptions.qs = qs;
+        return requestOptions;
+};
+
+const alertsListPostReceive = async function (
+        this: IExecuteSingleFunctions,
+        _items: INodeExecutionData[],
+        response: IN8nHttpFullResponse,
+): Promise<INodeExecutionData[]> {
+        const explicitProperty = this.getNodeParameter('responsePropertyName', '') as string;
+        const returnAll = this.getNodeParameter('returnAll', false) as boolean;
+        const limit = this.getNodeParameter('limit', 50) as number;
+        const status = this.getNodeParameter('alertStatus', '') as string;
+        const startingAfter = this.getNodeParameter('alertStartingAfter', '') as string;
+        const endingBefore = this.getNodeParameter('alertEndingBefore', '') as string;
+        const deviceId = parseDeviceIdFromInput(this.getNodeParameter('alertDeviceId', '') as unknown);
+        const extraQuery = this.getNodeParameter('alertExtraQuery', {}) as IDataObject;
+
+        const firstPageItems = asArray(response.body, explicitProperty || undefined);
+
+        let records = firstPageItems;
+
+        if (returnAll) {
+                const baseQuery = sanitizeQuery({
+                        status: status || undefined,
+                        starting_after: startingAfter || undefined,
+                        ending_before: endingBefore || undefined,
+                        device_id: deviceId || undefined,
+                        ...buildKeyValueCollection(extraQuery),
+                });
+
+                records = await levelApiRequestAllCursor.call(
+                        this,
+                        '/alerts',
+                        { ...baseQuery },
+                        ALERTS_LIST_PER_PAGE,
+                        explicitProperty || undefined,
+                        firstPageItems,
+                );
+        }
+
+        if (!returnAll) {
+                records = records.slice(0, limit);
+        }
+
+        return records.map((entry) => ({ json: entry }));
+};
+
+const alertsGetPostReceive = async function (
+        this: IExecuteSingleFunctions,
+        _items: INodeExecutionData[],
+        response: IN8nHttpFullResponse,
+): Promise<INodeExecutionData[]> {
+        const explicitProperty = this.getNodeParameter('responsePropertyName', '') as string;
+        const items = asArray(response.body, explicitProperty || undefined);
+        if (!items.length) {
+                throw new NodeOperationError(this.getNode(), 'Alert not found.', {
+                        itemIndex: 0,
+                });
+        }
+
+        return items.map((entry) => ({ json: entry }));
+};
 
 export const alertOperations: INodeProperties[] = [
         {
@@ -8,7 +111,7 @@ export const alertOperations: INodeProperties[] = [
                 noDataExpression: true,
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                         },
                 },
                 options: [
@@ -21,6 +124,9 @@ export const alertOperations: INodeProperties[] = [
                                                 method: 'GET',
                                                 url: '=/alerts/{{$parameter["id"]}}',
                                         },
+                                        output: {
+                                                postReceive: [alertsGetPostReceive],
+                                        },
                                 },
                         },
                         {
@@ -31,6 +137,12 @@ export const alertOperations: INodeProperties[] = [
                                         request: {
                                                 method: 'GET',
                                                 url: '/alerts',
+                                        },
+                                        send: {
+                                                preSend: [alertsListPreSend],
+                                        },
+                                        output: {
+                                                postReceive: [alertsListPostReceive],
                                         },
                                 },
                         },
@@ -49,7 +161,7 @@ export const alertFields: INodeProperties[] = [
                 description: 'ID of the alert to retrieve',
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['get'],
                         },
                 },
@@ -62,7 +174,7 @@ export const alertFields: INodeProperties[] = [
                 description: 'Whether to return all results or only up to a given limit',
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
                         },
                 },
@@ -76,16 +188,9 @@ export const alertFields: INodeProperties[] = [
                 description: 'Max number of results to return',
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
                                 returnAll: [false],
-                        },
-                },
-                routing: {
-                        request: {
-                                qs: {
-                                        limit: '={{$value}}',
-                                },
                         },
                 },
         },
@@ -97,15 +202,8 @@ export const alertFields: INodeProperties[] = [
                 description: 'Filter to only include alerts for the specified <code>device_id</code>',
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
-                        },
-                },
-                routing: {
-                        request: {
-                                qs: {
-                                        device_id: '={{$value}}',
-                                },
                         },
                 },
         },
@@ -117,7 +215,7 @@ export const alertFields: INodeProperties[] = [
                 description: 'Filter to only include alerts with the given status',
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
                         },
                 },
@@ -126,13 +224,6 @@ export const alertFields: INodeProperties[] = [
                         { name: 'Active', value: 'active' },
                         { name: 'Resolved', value: 'resolved' },
                 ],
-                routing: {
-                        request: {
-                                qs: {
-                                        status: '={{$value || undefined}}',
-                                },
-                        },
-                },
         },
         {
                 displayName: 'Starting After',
@@ -143,15 +234,8 @@ export const alertFields: INodeProperties[] = [
                         "A cursor for use in pagination. <code>starting_after</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, ending with ID '1234', your subsequent call can include 'starting_after=1234' in order to fetch the next page of the list",
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
-                        },
-                },
-                routing: {
-                        request: {
-                                qs: {
-                                        starting_after: '={{$value}}',
-                                },
                         },
                 },
         },
@@ -164,15 +248,8 @@ export const alertFields: INodeProperties[] = [
                         "A cursor for use in pagination. <code>ending_before</code> is an ID that defines your place in the list. For instance, if you make a list request and receive 100 objects, starting with ID '1234', your subsequent call can include 'ending_before=1234' in order to fetch the previous page of the list",
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
-                        },
-                },
-                routing: {
-                        request: {
-                                qs: {
-                                        ending_before: '={{$value}}',
-                                },
                         },
                 },
         },
@@ -186,7 +263,7 @@ export const alertFields: INodeProperties[] = [
                 description: 'Additional query string parameters supported by the API',
                 displayOptions: {
                         show: {
-                                resource: ['alert'],
+                                resource: ['alerts'],
                                 operation: ['list'],
                         },
                 },
@@ -200,10 +277,5 @@ export const alertFields: INodeProperties[] = [
                                 ],
                         },
                 ],
-                routing: {
-                        request: {
-                                qs: '={{$value.parameter?.reduce((acc, cur) => cur?.key ? Object.assign(acc, { [cur.key]: cur.value ?? "" }) : acc, {}) || {}}}' as unknown as IDataObject,
-                        },
-                },
         },
 ];

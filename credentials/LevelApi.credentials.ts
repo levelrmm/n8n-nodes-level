@@ -17,13 +17,15 @@ export class LevelApi implements ICredentialType {
         authenticate: IAuthenticateGeneric = {
                 type: 'generic',
                 properties: {
-                        headers: { Authorization: '={{$credentials.apiKey}}' },
+                        headers: {
+                                Authorization: '={{$credentials.apiKey}}',
+                        },
                 },
         };
 
         test: ICredentialTestRequest = {
                 request: {
-                        baseURL: '={{$credentials.baseUrl}}',
+                        baseURL: 'https://api.level.io/v2',
                         url: '/groups',
                         method: 'GET',
                 },
