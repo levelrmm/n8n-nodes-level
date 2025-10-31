@@ -1,4 +1,4 @@
-export * from './Alert.description';
+export * from './Alerts.description';
 export * from './Automation.description';
-export * from './Device.description';
-export * from './Group.description';
+export * from './Devices.description';
+export * from './Groups.description';
