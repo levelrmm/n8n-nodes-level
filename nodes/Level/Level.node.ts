@@ -32,10 +32,9 @@ export class Level implements INodeType {
                 outputs: [NodeConnectionTypes.Main],
                 usableAsTool: true,
                 requestDefaults: {
-                        baseURL: 'https://api.level.io/v2',
+                        baseURL: '={{$credentials.baseUrl || "https://api.level.io/v2"}}',
                         headers: {
                                 Accept: 'application/json',
-                                'Content-Type': 'application/json',
                         },
                         json: true,
                 },
@@ -47,11 +46,10 @@ export class Level implements INodeType {
                                 type: 'options',
                                 noDataExpression: true,
                                 options: [
-                                        // eslint-disable-next-line n8n-nodes-base/node-param-resource-with-plural-option
-                                        { name: 'Alerts', value: 'alerts' },
+                                        { name: 'Alert', value: 'alerts' },
                                         { name: 'Automation', value: 'automation' },
-                                        { name: 'Devices', value: 'devices' },
-                                        { name: 'Groups', value: 'groups' },
+                                        { name: 'Device', value: 'devices' },
+                                        { name: 'Group', value: 'groups' },
                                 ],
                                 default: 'devices',
                         },

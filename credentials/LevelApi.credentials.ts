@@ -13,7 +13,7 @@ export class LevelApi implements ICredentialType {
                 light: 'file:../nodes/Level/level.svg',
                 dark: 'file:../nodes/Level/level.dark.svg',
         };
-        documentationUrl = 'https://levelapi.readme.io/reference/getting-started-with-your-api';
+        documentationUrl = 'https://levelapi.readme.io/reference/authentication';
         authenticate: IAuthenticateGeneric = {
                 type: 'generic',
                 properties: {
@@ -25,7 +25,7 @@ export class LevelApi implements ICredentialType {
 
         test: ICredentialTestRequest = {
                 request: {
-                        baseURL: 'https://api.level.io/v2',
+                        baseURL: '={{$credentials.baseUrl || "https://api.level.io/v2"}}',
                         url: '/groups',
                         method: 'GET',
                 },
