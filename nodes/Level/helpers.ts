@@ -199,6 +199,10 @@ export async function levelApiRequestAllCursor(
 ): Promise<IDataObject[]> {
         const aggregated = [...seedItems];
 
+        if (!baseQuery.starting_after && seedItems.length < perPage) {
+                return seedItems;
+        }
+
         let cursor: string | undefined;
         if (typeof baseQuery.starting_after === 'string' && baseQuery.starting_after.trim()) {
                         cursor = baseQuery.starting_after.trim();
