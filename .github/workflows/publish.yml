@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # required for npm Trusted Publishing (OIDC)
 
 jobs:
   publish:
@@ -30,7 +29,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Fix for the npm metadata PUT race condition on scoped packages
+      - name: Wait for registry propagation
+        run: sleep 5
+
       - name: Publish to npm
         run: npm publish --provenance --access public
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
+          
