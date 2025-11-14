@@ -30,12 +30,12 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish to npm
-        run: npm publish --provenance --access public
-        env:
-          NPM_CONFIG_PROVENANCE: true
-
-      # - name: Publish to npm (token)
-      #   run: npm publish --access public
+      # - name: Publish to npm
+      #   run: npm publish --provenance --access public
       #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     NPM_CONFIG_PROVENANCE: true
+
+      - name: Publish to npm (token)
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
