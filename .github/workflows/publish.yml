@@ -30,13 +30,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Fix for the npm metadata PUT race condition on scoped packages
-      - name: Wait for registry propagation
-        run: sleep 5
-
-      - name: Publish to npm
+      - name: Publish to npm (OIDC)
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
           
