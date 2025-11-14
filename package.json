@@ -1,6 +1,6 @@
 {
   "name": "@levelrmm/n8n-nodes-level",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Official Level RMM integration for n8n to automate Level operations.",
   "license": "MIT",
   "homepage": "https://level.io",
@@ -18,10 +18,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Level-io/n8n-nodes-level.git"
+    "url": "https://github.com/levelrmm/n8n-nodes-level.git"
   },
   "bugs": {
-    "url": "https://github.com/Level-io/n8n-nodes-level/issues"
+    "url": "https://github.com/levelrmm/n8n-nodes-level/issues"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
